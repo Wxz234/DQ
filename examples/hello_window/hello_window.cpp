@@ -19,11 +19,7 @@ public:
 		pDevice = DQ::Device::create(pWindow, deviceDesc);
 	}
 
-	~HelloWindow()
-	{
-	}
-
-	void update()
+	void msgLoop()
 	{
 		pWindow->msgLoop();
 	}
@@ -43,6 +39,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	uint32_t width = 800, height = 600;
 	std::wstring title = L"Hello Window";
 	HelloWindow sample(title, width, height);
-	sample.update();
+	sample.msgLoop();
 	return 0;
 }
