@@ -27,8 +27,7 @@ namespace DQ
 		Device(Window::SharedPtr& pWindow, const Desc& desc);
 
 		class Impl;
-
-		Desc mDesc;
 		Impl* mpImpl;
+		Desc mDesc;
 	};
 }

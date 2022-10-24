@@ -39,9 +39,8 @@ namespace DQ
 		Window(const Desc& desc, ICallbacks* pCallbacks);
 
 		class Impl;
-
+		Impl* mpImpl;
 		Desc mDesc;
 		ICallbacks* mpCallbacks;
-		Impl* mpImpl;
 	};
 }
