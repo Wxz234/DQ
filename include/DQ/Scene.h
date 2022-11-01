@@ -27,6 +27,7 @@ namespace DQ
 
 	private:
 		void _preBake();
+		bool _preCheck(std::string_view modelPath);
 
 		Scene(DQ::Device::SharedPtr& pDevice);
 

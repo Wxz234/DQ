@@ -3,7 +3,6 @@
 #include "nvrhi/d3d12.h"
 #include "nvrhi/utils.h"
 #include "nvrhi/validation.h"
-
 #include <d3d12.h>
 #include <dxgi1_6.h>
 
