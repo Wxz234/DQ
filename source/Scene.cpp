@@ -212,4 +212,9 @@ namespace DQ
 	{
 
 	}
+
+	void Scene::update()
+	{
+
+	}
 }

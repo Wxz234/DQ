@@ -190,4 +190,9 @@ namespace DQ
 
 		mpImpl->mDevice->runGarbageCollection();
 	}
+
+	void* Device::getRhiDevice() const
+	{
+		return mpImpl->mDevice.Get();
+	}
 }

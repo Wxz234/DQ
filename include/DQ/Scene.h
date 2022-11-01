@@ -24,6 +24,7 @@ namespace DQ
 
 		~Scene();
 		void loadModel(std::string_view modelPath);
+		void update();
 
 	private:
 		void _preBake();

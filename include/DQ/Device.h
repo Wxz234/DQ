@@ -21,6 +21,7 @@ namespace DQ
 		~Device();
 
 		void present();
+		void* getRhiDevice() const;
 
 	private:
 
