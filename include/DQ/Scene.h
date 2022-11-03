@@ -20,7 +20,7 @@ namespace DQ
 			std::vector<uint32_t> indices;
 		};
 
-		static SharedPtr create(DQ::Device::SharedPtr& pDevice);
+		static SharedPtr create(const DQ::Device::SharedPtr& pDevice);
 
 		~Scene();
 		void loadModel(std::string_view modelPath);
@@ -30,7 +30,7 @@ namespace DQ
 		void _preBake();
 		bool _preCheck(std::string_view modelPath);
 
-		Scene(DQ::Device::SharedPtr& pDevice);
+		Scene(const DQ::Device::SharedPtr& pDevice);
 
 		class Impl;
 		Impl* mpImpl;

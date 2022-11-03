@@ -116,7 +116,7 @@ namespace DQ
 		nvrhi::DeviceHandle mDevice;
 	};
 
-	Device::SharedPtr Device::create(Window::SharedPtr& pWindow, const Desc& desc)
+	Device::SharedPtr Device::create(const Window::SharedPtr& pWindow, const Desc& desc)
 	{
 		return SharedPtr(new Device(pWindow, desc));
 	}
@@ -144,7 +144,7 @@ namespace DQ
 		delete mpImpl;
 	}
 
-	Device::Device(Window::SharedPtr& pWindow, const Desc& desc)
+	Device::Device(const Window::SharedPtr& pWindow, const Desc& desc)
 	{
 		mDesc = desc;
 		mpImpl = new Impl;

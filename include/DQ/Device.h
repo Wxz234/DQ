@@ -16,7 +16,7 @@ namespace DQ
 			uint32_t height = 1080;
 		};
 
-		static SharedPtr create(Window::SharedPtr& pWindow, const Desc& desc);
+		static SharedPtr create(const Window::SharedPtr& pWindow, const Desc& desc);
 
 		~Device();
 
@@ -25,7 +25,7 @@ namespace DQ
 
 	private:
 
-		Device(Window::SharedPtr& pWindow, const Desc& desc);
+		Device(const Window::SharedPtr &pWindow, const Desc& desc);
 
 		class Impl;
 		Impl* mpImpl;
