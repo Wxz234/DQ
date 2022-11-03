@@ -1,9 +1,7 @@
 add_library(DQ STATIC 
 	"DQ.cpp"
-	"Scene.cpp"
 	"Device.cpp"
 	"Window.cpp"
-	"Texture.cpp"
 )
 
 target_include_directories(DQ PUBLIC "${PROJECT_SOURCE_DIR}/include")
