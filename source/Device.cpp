@@ -195,4 +195,5 @@ namespace DQ
 	{
 		return mpImpl->mDevice.Get();
 	}
+
 }

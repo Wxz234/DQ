@@ -1,8 +1,4 @@
 #include "DQ/Scene.h"
-#include "nvrhi/nvrhi.h"
-#include "nvrhi/d3d12.h"
-#include "nvrhi/utils.h"
-#include "nvrhi/validation.h"
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
 #include <cstdint>
@@ -11,31 +7,6 @@
 
 namespace DQ
 {
-
-	nvrhi::IDevice* _getRhiDevice(void* pDevice)
-	{
-		return (nvrhi::IDevice*)(pDevice);
-	}
-
-	void _loadTexture(std::vector<nvrhi::TextureHandle>& textures, cgltf_primitive& primitive)
-	{
-		if (!primitive.material)
-		{
-			// todo: add default material
-		}
-
-		auto material = primitive.material;
-
-		if (material->has_pbr_metallic_roughness)
-		{
-			MessageBox(0, 0, 0, 0);
-		}
-		else if (material->has_pbr_specular_glossiness)
-		{
-
-		}
-		// todo xxxxx
-	}
 
 	DirectX::XMFLOAT3 _getNormal(const DirectX::XMFLOAT3& a, const DirectX::XMFLOAT3& b, const DirectX::XMFLOAT3& c)
 	{
@@ -163,18 +134,16 @@ namespace DQ
 	class Scene::Impl
 	{
 	public:
-		std::vector<nvrhi::TextureHandle> textures;
 	};
 
-	Scene::SharedPtr Scene::create(const DQ::Device::SharedPtr& pDevice)
+	Scene::SharedPtr Scene::create()
 	{
-		return SharedPtr(new Scene(pDevice));
+		return SharedPtr(new Scene);
 	}
 
-	Scene::Scene(const DQ::Device::SharedPtr& pDevice)
+	Scene::Scene()
 	{
 		mpImpl = new Impl;
-		mpDevice = pDevice;
 	}
 
 	Scene::~Scene()
@@ -199,10 +168,8 @@ namespace DQ
 			for (cgltf_size j = 0; j < data->meshes[i].primitives_count; ++j)
 			{
 				mMesh.push_back(_assemble_Mesh(data->meshes[i].primitives[j]));
-				_loadTexture(mpImpl->textures, data->meshes[i].primitives[j]);
 			}
 		}
-		// load texture
 		cgltf_free(data);
 	}
 
@@ -235,11 +202,6 @@ namespace DQ
 	}
 
 	void Scene::_preBake()
-	{
-
-	}
-
-	void Scene::update()
 	{
 
 	}

@@ -17,7 +17,7 @@ public:
 		deviceDesc.width = width;
 		deviceDesc.height = height;
 		pDevice = DQ::Device::create(pWindow, deviceDesc);
-		pScene = DQ::Scene::create(pDevice);
+		pScene = DQ::Scene::create();
 	}
 
 	void msgLoop()

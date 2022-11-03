@@ -20,21 +20,19 @@ namespace DQ
 			std::vector<uint32_t> indices;
 		};
 
-		static SharedPtr create(const DQ::Device::SharedPtr& pDevice);
+		static SharedPtr create();
 
 		~Scene();
 		void loadModel(std::string_view modelPath);
-		void update();
 
 	private:
 		void _preBake();
 		bool _preCheck(std::string_view modelPath);
 
-		Scene(const DQ::Device::SharedPtr& pDevice);
+		Scene();
 
 		class Impl;
 		Impl* mpImpl;
 		std::vector<Mesh> mMesh;
-		DQ::Device::SharedPtr mpDevice;
 	};
 }
