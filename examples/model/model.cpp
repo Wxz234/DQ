@@ -17,11 +17,17 @@ public:
 		deviceDesc.width = width;
 		deviceDesc.height = height;
 		pDevice = DQ::Device::create(pWindow, deviceDesc);
+		pScene = DQ::Scene::create();
 	}
 
 	void msgLoop()
 	{
 		pWindow->msgLoop();
+	}
+
+	void init()
+	{
+		pScene->loadModel("Model/Box With Spaces/Box With Spaces.gltf");
 	}
 
 private:
@@ -32,6 +38,7 @@ private:
 
 	DQ::Window::SharedPtr pWindow;
 	DQ::Device::SharedPtr pDevice;
+	DQ::Scene::SharedPtr pScene;
 };
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
@@ -39,6 +46,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	uint32_t width = 800, height = 600;
 	std::wstring title = L"Hello Window";
 	HelloWindow sample(title, width, height);
+	sample.init();
 	sample.msgLoop();
 	return 0;
 }

@@ -1,7 +1,9 @@
-#include "DQ/Loader.h"
-#include "TextureImpl.h"
+#include "DQ/Scene.h"
+#include "DQ/Utility.h"
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
+#include <filesystem>
+#include <string>
 #include <cstdint>
 #include <cstddef>
 #include <cmath>
@@ -132,21 +134,9 @@ namespace DQ
 		return mesh;
 	}
 
-	void _loadTexture(std::vector<DTexture>& texture, Scene::MeshData& meshData, std::string_view modelPath, cgltf_primitive& primitive)
-	{
-		
-		if (!primitive.material)
-		{
-			
-		}
-
-
-	}
-
 	class Scene::Impl
 	{
 	public:
-		std::vector<DTexture> texture;
 	};
 
 	Scene::SharedPtr Scene::create()
@@ -175,13 +165,13 @@ namespace DQ
 		cgltf_data* data = nullptr;
 		cgltf_parse_file(&options, modelPath.data(), &data);
 		cgltf_load_buffers(&options, data, modelPath.data());
-
+		
 		for (cgltf_size i = 0; i < data->meshes_count; ++i)
 		{
 			for (cgltf_size j = 0; j < data->meshes[i].primitives_count; ++j)
 			{
 				auto meshData = _assemble_Mesh(data->meshes[i].primitives[j]);
-				_loadTexture(mpImpl->texture, meshData, modelPath, data->meshes[i].primitives[j]);
+				//_loadTexture(mpImpl->textureData, meshData, modelPath, data->meshes[i].primitives[j]);
 
 				mMesh.push_back(meshData);
 			}

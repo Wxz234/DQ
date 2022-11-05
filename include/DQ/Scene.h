@@ -1,6 +1,5 @@
 #pragma once
 #include "Device.h"
-#include "Texture.h"
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -19,10 +18,11 @@ namespace DQ
 			std::vector<DirectX::XMFLOAT3> normals;
 			std::vector<DirectX::XMFLOAT2> texcoord0;
 			std::vector<uint32_t> indices;
+		};
 
-			Texture* basecolor = nullptr;
-			Texture* normal = nullptr;
-			Texture* metallicroughness = nullptr;
+		struct TextureData
+		{
+
 		};
 
 		static SharedPtr create();
