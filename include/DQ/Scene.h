@@ -4,6 +4,7 @@
 #include <string_view>
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include <DirectXMath.h>
 namespace DQ
 {
@@ -20,9 +21,15 @@ namespace DQ
 			std::vector<uint32_t> indices;
 		};
 
-		struct TextureData
+		struct TextureData 
 		{
-
+			TextureData(uint32_t w, uint32_t h, const DirectX::XMFLOAT4& color);
+			TextureData(std::string_view path);
+			std::vector<uint8_t> data;
+			uint32_t width;
+			uint32_t height;
+		private:
+			void updateByFactor(float x, float y, float z, float w);
 		};
 
 		static SharedPtr create();
@@ -30,14 +37,16 @@ namespace DQ
 		~Scene();
 		void loadModel(std::string_view modelPath);
 
+		void update();
 	private:
-		void _preBake();
 		bool _preCheck(std::string_view modelPath);
 
 		Scene();
 
+		std::vector<TextureData> textureData;
+		std::vector<MeshData> meshData;
+
 		class Impl;
 		Impl* mpImpl;
-		std::vector<MeshData> mMesh;
 	};
 }

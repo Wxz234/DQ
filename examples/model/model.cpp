@@ -18,6 +18,7 @@ public:
 		deviceDesc.height = height;
 		pDevice = DQ::Device::create(pWindow, deviceDesc);
 		pScene = DQ::Scene::create();
+		pRenderer = DQ::Renderer::create(pDevice);
 	}
 
 	void msgLoop()
@@ -33,12 +34,14 @@ public:
 private:
 	void handleRenderFrame()
 	{
+		pRenderer->render();
 		pDevice->present();
 	}
 
 	DQ::Window::SharedPtr pWindow;
 	DQ::Device::SharedPtr pDevice;
 	DQ::Scene::SharedPtr pScene;
+	DQ::Renderer::SharedPtr pRenderer;
 };
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)

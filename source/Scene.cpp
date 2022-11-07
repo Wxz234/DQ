@@ -2,15 +2,17 @@
 #include "DQ/Utility.h"
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
-#include <filesystem>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include <string>
+#include <filesystem>
+#include <limits>
 #include <cstdint>
 #include <cstddef>
 #include <cmath>
 
 namespace DQ
 {
-
 	DirectX::XMFLOAT3 _getNormal(const DirectX::XMFLOAT3& a, const DirectX::XMFLOAT3& b, const DirectX::XMFLOAT3& c)
 	{
 		DirectX::XMFLOAT3 v0(a.x - b.x, a.y - b.y, a.z - b.z);
@@ -20,7 +22,7 @@ namespace DQ
 		return DirectX::XMFLOAT3(normal.x / length, normal.y / length, normal.z / length);
 	}
 
-	Scene::MeshData _assemble_Mesh(cgltf_primitive& primitive)
+	Scene::MeshData _assemble_Mesh(const cgltf_primitive& primitive)
 	{
 		Scene::MeshData mesh;
 		for (cgltf_size i = 0; i < primitive.attributes_count; ++i)
@@ -134,9 +136,150 @@ namespace DQ
 		return mesh;
 	}
 
+	void _getMeshTextureData(std::vector<Scene::TextureData>& textureData, const cgltf_primitive& primitive,const std::filesystem::path &parentPath)
+	{
+		if (!primitive.material)
+		{
+			textureData.emplace_back(16, 16, DirectX::XMFLOAT4(0.5f, 0.0f, 0.0f, 1.0f));
+			textureData.emplace_back(16, 16, DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+			textureData.emplace_back(16, 16, DirectX::XMFLOAT4(0.5f, 0.5f, 1.0f, 1.0f));
+			return;
+		}
+
+		auto material = primitive.material;
+
+		if (material->has_pbr_metallic_roughness)
+		{
+			if (material->pbr_metallic_roughness.base_color_texture.texture)
+			{
+				auto uri = material->pbr_metallic_roughness.base_color_texture.texture->image->uri;
+				auto de_uri = url_decode(uri);
+				auto path = parentPath / de_uri;
+				auto pathStr = path.string();
+				textureData.emplace_back(pathStr);
+			}
+			else
+			{
+				auto x = material->pbr_metallic_roughness.base_color_factor[0];
+				auto y = material->pbr_metallic_roughness.base_color_factor[1];
+				auto z = material->pbr_metallic_roughness.base_color_factor[2];
+				auto w = material->pbr_metallic_roughness.base_color_factor[3];
+				textureData.emplace_back(16, 16, DirectX::XMFLOAT4(x, y, z, w));
+			}
+
+			if (material->pbr_metallic_roughness.metallic_roughness_texture.texture)
+			{
+				auto uri = material->pbr_metallic_roughness.metallic_roughness_texture.texture->image->uri;
+				auto de_uri = url_decode(uri);
+				auto path = parentPath / de_uri;
+				auto pathStr = path.string();
+				textureData.emplace_back(pathStr);
+			}
+			else
+			{
+				auto x = material->pbr_metallic_roughness.metallic_factor;
+				auto y = material->pbr_metallic_roughness.roughness_factor;
+				textureData.emplace_back(16, 16, DirectX::XMFLOAT4(x, y, 0.0f, 1.0f));
+			}
+		}
+		else
+		{
+			crash("I do not support this material.");
+		}
+
+		if (material->normal_texture.texture)
+		{
+			auto uri = material->normal_texture.texture->image->uri;
+			auto de_uri = url_decode(uri);
+			auto path = parentPath / de_uri;
+			auto pathStr = path.string();
+			textureData.emplace_back(pathStr);
+		}
+		else
+		{
+			textureData.emplace_back(16, 16, DirectX::XMFLOAT4(0.5f, 0.5f, 1.0f, 1.0f));
+		}
+	}
+
+	Scene::TextureData::TextureData(uint32_t w, uint32_t h, const DirectX::XMFLOAT4& color)
+	{
+		width = w;
+		height = h;
+		data.resize(w * h * 4);
+
+		updateByFactor(color.x, color.y, color.z, color.w);
+	}
+
+	Scene::TextureData::TextureData(std::string_view path)
+	{
+		int _width, _height, nrChannels;
+		unsigned char* _data = stbi_load(path.data(), &_width, &_height, &nrChannels, 0);
+		width = _width;
+		height = _height;
+		data.resize(width * height * 4);
+
+		if (nrChannels != 3 && nrChannels != 4)
+		{
+			crash("I do not support this image format.");
+		}
+
+		if (nrChannels == 3)
+		{
+			for (size_t _dataIndex = 0, i = 0; i < data.size(); ++i)
+			{
+				if (i % 4 == 3)
+				{
+					data[i] = 255;
+				}
+				else
+				{
+					data[i] = _data[_dataIndex++];
+				}
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < data.size(); ++i)
+			{
+				data[i] = _data[i];
+			}
+		}
+
+		stbi_image_free(_data);
+	}
+
+	inline uint8_t _float_to_int_color(const float color) {
+		constexpr float MAXCOLOR = 256.0f - std::numeric_limits<float>::epsilon() * 128;
+		return static_cast<uint8_t>(color * MAXCOLOR);
+	}
+
+	void Scene::TextureData::updateByFactor(float x, float y, float z, float w)
+	{
+		for (size_t i = 0; i < data.size(); ++i)
+		{
+			if (i % 4 == 0)
+			{
+				data[i] = _float_to_int_color(x);
+			}
+			if (i % 4 == 1)
+			{
+				data[i] = _float_to_int_color(y);
+			}
+			if (i % 4 == 2)
+			{
+				data[i] = _float_to_int_color(z);
+			}
+			if (i % 4 == 3)
+			{
+				data[i] = _float_to_int_color(w);
+			}
+		}
+	}
+
 	class Scene::Impl
 	{
 	public:
+
 	};
 
 	Scene::SharedPtr Scene::create()
@@ -165,15 +308,15 @@ namespace DQ
 		cgltf_data* data = nullptr;
 		cgltf_parse_file(&options, modelPath.data(), &data);
 		cgltf_load_buffers(&options, data, modelPath.data());
+		std::filesystem::path modelPathFs{ modelPath };
 		
 		for (cgltf_size i = 0; i < data->meshes_count; ++i)
 		{
 			for (cgltf_size j = 0; j < data->meshes[i].primitives_count; ++j)
 			{
-				auto meshData = _assemble_Mesh(data->meshes[i].primitives[j]);
-				//_loadTexture(mpImpl->textureData, meshData, modelPath, data->meshes[i].primitives[j]);
-
-				mMesh.push_back(meshData);
+				auto mesh = _assemble_Mesh(data->meshes[i].primitives[j]);
+				meshData.push_back(mesh);
+				_getMeshTextureData(textureData, data->meshes[i].primitives[j], modelPathFs.parent_path());
 			}
 		}
 		cgltf_free(data);
@@ -205,10 +348,5 @@ namespace DQ
 
 		cgltf_free(data);
 		return true;
-	}
-
-	void Scene::_preBake()
-	{
-
 	}
 }

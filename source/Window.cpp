@@ -1,6 +1,3 @@
-#define UNICODE
-#define _UNICODE
-
 #include "DQ/Window.h"
 
 namespace DQ
