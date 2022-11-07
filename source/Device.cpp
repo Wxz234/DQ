@@ -5,9 +5,11 @@
 #include "nvrhi/validation.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <vector>
 
 #define FRAME_COUNT 2
 #define FRAME_FORMAT DXGI_FORMAT_R8G8B8A8_UNORM
+#define NVRHI_FORMAT nvrhi::Format::RGBA8_UNORM
 
 namespace DQ
 {
@@ -114,6 +116,9 @@ namespace DQ
 		HANDLE mComputeFenceEvent = NULL;
 
 		nvrhi::DeviceHandle mDevice;
+		std::vector<nvrhi::TextureHandle> mSwapchainHandle;
+		std::vector<nvrhi::RefCountPtr<ID3D12Resource>> m_SwapChainBuffers;
+		
 	};
 
 	Device::SharedPtr Device::create(const Window::SharedPtr& pWindow, const Desc& desc)
@@ -125,9 +130,14 @@ namespace DQ
 	{
 		mpImpl->mDevice->waitForIdle();
 		mpImpl->mDevice->runGarbageCollection();
+
+		mpImpl->mSwapchainHandle.clear();
+
 		_wait(mpImpl->mGFenceValue, mpImpl->pGraphicsQueue, mpImpl->pGFence, mpImpl->mGFenceEvent);
 		_wait(mpImpl->mCopyFenceValue, mpImpl->pCopyQueue, mpImpl->pCopyFence, mpImpl->mCopyFenceEvent);
 		_wait(mpImpl->mComputeFenceValue, mpImpl->pComputeQueue, mpImpl->pComputeFence, mpImpl->mComputeFenceEvent);
+
+		mpImpl->m_SwapChainBuffers.clear();
 
 		CloseHandle(mpImpl->mComputeFenceEvent);
 		mpImpl->pComputeFence->Release();
@@ -175,6 +185,27 @@ namespace DQ
 #ifdef _DEBUG
 		mpImpl->mDevice = nvrhi::validation::createValidationLayer(mpImpl->mDevice);
 #endif
+		nvrhi::TextureDesc textureDesc;
+		textureDesc.width = desc.width;
+		textureDesc.height = desc.height;
+		textureDesc.sampleCount = 1;
+		textureDesc.sampleQuality = 0;
+		textureDesc.format = NVRHI_FORMAT;
+		textureDesc.debugName = "SwapChainBuffer";
+		textureDesc.isRenderTarget = true;
+		textureDesc.isUAV = false;
+		textureDesc.initialState = nvrhi::ResourceStates::Present;
+		textureDesc.keepInitialState = true;
+
+		mpImpl->m_SwapChainBuffers.resize(FRAME_COUNT);
+		mpImpl->mSwapchainHandle.resize(FRAME_COUNT);
+		
+		for (UINT n = 0; n < FRAME_COUNT; n++)
+		{
+			const HRESULT hr = mpImpl->pSwapChain->GetBuffer(n, IID_PPV_ARGS(&mpImpl->m_SwapChainBuffers[n]));
+			mpImpl->mSwapchainHandle[n] = mpImpl->mDevice->createHandleForNativeTexture(nvrhi::ObjectTypes::D3D12_Resource, nvrhi::Object(mpImpl->m_SwapChainBuffers[n]), textureDesc);
+		}
+
 		_wait(mpImpl->mGFenceValue, mpImpl->pGraphicsQueue, mpImpl->pGFence, mpImpl->mGFenceEvent);
 		_wait(mpImpl->mCopyFenceValue, mpImpl->pCopyQueue, mpImpl->pCopyFence, mpImpl->mCopyFenceEvent);
 		_wait(mpImpl->mComputeFenceValue, mpImpl->pComputeQueue, mpImpl->pComputeFence, mpImpl->mComputeFenceEvent);
