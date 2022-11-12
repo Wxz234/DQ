@@ -3,9 +3,12 @@
 #include <cstdint>
 namespace DQ
 {
-	class ShaderFactory 
+	namespace Shader
 	{
-	public:
-		static std::vector<uint8_t> GetBlob(const char *path);
-	};
+		class ShaderFactory
+		{
+		public:
+			static std::vector<uint8_t> GetBlob(const char* path);
+		};
+	}
 }
