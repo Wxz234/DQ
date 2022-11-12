@@ -1,10 +1,11 @@
 #pragma once
-#include "Blob.h"
+#include <vector>
+#include <cstdint>
 namespace DQ
 {
 	class ShaderFactory 
 	{
 	public:
-		static ShaderFactory* GetBlob(const char *path);
+		static std::vector<uint8_t> GetBlob(const char *path);
 	};
 }

@@ -1,6 +1,9 @@
+file(GLOB_RECURSE vs_file *.vert)
+file(GLOB_RECURSE fs_file *.frag)
 add_library(DQ_Shaders STATIC 
 	"ShaderFactory.cpp"
-	"gbuffer.vert"
+	${vs_file}
+	${fs_file}
 )
 target_include_directories(DQ_Shaders PUBLIC ${PROJECT_SOURCE_DIR}/Include)
 
