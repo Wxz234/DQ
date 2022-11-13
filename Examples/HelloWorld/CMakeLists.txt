@@ -1,0 +1,1 @@
+add_executable(HelloWorld WIN32 HelloWorld.cpp)

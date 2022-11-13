@@ -6,3 +6,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(Shaders)
 add_subdirectory(Src)
+add_subdirectory(Examples/HelloWorld)
