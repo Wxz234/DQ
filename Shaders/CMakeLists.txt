@@ -2,9 +2,10 @@ file(GLOB_RECURSE vs_file *.vert)
 file(GLOB_RECURSE fs_file *.frag)
 
 set_source_files_properties(gbuffer.vert PROPERTIES Entry "main")
+set_source_files_properties(gbuffer.frag PROPERTIES Entry "main")
 
 add_library(DQ_Shaders STATIC 
-	"ShaderFactory.cpp"
+	"Shader.cpp"
 	${vs_file}
 	${fs_file}
 )
