@@ -20,6 +20,6 @@ namespace DQ
 			uint32_t mHeight = 600;
 		} mSettings;
 
-		WindowHandle* pWindow;
+		WindowHandle* pWindow = nullptr;
 	};
 }

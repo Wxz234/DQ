@@ -54,7 +54,7 @@ namespace DQ
 			else
 			{
 				QueryPerformanceCounter(&nowTime);
-				float deltaTimeFloat = (nowTime.QuadPart - lastTime.QuadPart) * 1000.0f / frequency.QuadPart;
+				float deltaTimeFloat = (nowTime.QuadPart - lastTime.QuadPart) / (float)frequency.QuadPart;
 				lastTime = nowTime;
 				app->Update(deltaTimeFloat);
 				app->Draw();

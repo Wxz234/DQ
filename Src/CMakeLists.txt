@@ -3,6 +3,7 @@ add_library(DQ_Core STATIC
 	"APP.cpp"
 	"Device.cpp"
 	"WindowsBase.cpp"
+	"Renderer.cpp"
 )
 target_include_directories(DQ_Core PUBLIC ${PROJECT_SOURCE_DIR}/Include)
 target_link_libraries(DQ_Core PUBLIC DQ_Shaders d3d12 dxgi dxguid)

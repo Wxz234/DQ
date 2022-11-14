@@ -9,6 +9,7 @@
 #include "Scene.h"
 #include "Window.h"
 #include "Device.h"
+#include "Renderer.h"
 
 namespace DQ
 {

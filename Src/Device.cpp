@@ -105,8 +105,6 @@ namespace DQ
 			_wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
 		}
 
-		ID3D12CommandQueue* pGraphicsQueue = nullptr;
-
 		uint64_t mGFenceValue = 0;
 		ID3D12Fence* pGFence = nullptr;
 		HANDLE mGFenceEvent = NULL;

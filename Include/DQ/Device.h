@@ -7,9 +7,9 @@ namespace DQ
 {
 	struct DeviceDesc
 	{
-		uint32_t mWidth = 800;
-		uint32_t mHeight = 600;
-		WindowHandle mHandle{};
+		uint32_t mWidth;
+		uint32_t mHeight;
+		WindowHandle mHandle;
 	};
 
 	class IDevice
@@ -17,8 +17,9 @@ namespace DQ
 	public:
 		virtual void Present() = 0;
 
-		ID3D12Device6* pDevice;
-		IDXGISwapChain4* pSwapChain;
+		ID3D12Device6* pDevice = nullptr;
+		IDXGISwapChain4* pSwapChain = nullptr;
+		ID3D12CommandQueue* pGraphicsQueue = nullptr;
 	};
 
 	void InitDevice(DeviceDesc* pDesc, IDevice** ppDevice);
