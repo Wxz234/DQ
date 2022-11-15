@@ -9,7 +9,7 @@ add_library(DQ_Shaders STATIC
 	${vs_file}
 	${fs_file}
 )
-target_include_directories(DQ_Shaders PUBLIC ${PROJECT_SOURCE_DIR}/Include)
+target_include_directories(DQ_Shaders PUBLIC "${PROJECT_SOURCE_DIR}/Include")
 
 set_target_properties(DQ_Shaders PROPERTIES FOLDER "DQ")
 
@@ -17,7 +17,7 @@ foreach(myfile ${vs_file})
 	get_filename_component(variable_name ${myfile} NAME_WE ABSOLUTE)
 	get_source_file_property(MyEntry ${myfile} Entry)
 	if(${MyEntry} STREQUAL NOTFOUND)
-		add_custom_command(TARGET DQ_Shaders PRE_BUILD 
+		add_custom_command(TARGET DQ_Shaders POST_BUILD 
 			COMMAND 
 			"${PROJECT_SOURCE_DIR}/ThirdParty/DirectXShaderCompiler/bin/x64/dxc.exe" 
 			${myfile}
@@ -31,7 +31,7 @@ foreach(myfile ${vs_file})
 			"${variable_name}_vs"
 		)
 	else()
-		add_custom_command(TARGET DQ_Shaders PRE_BUILD 
+		add_custom_command(TARGET DQ_Shaders POST_BUILD 
 			COMMAND 
 			"${PROJECT_SOURCE_DIR}/ThirdParty/DirectXShaderCompiler/bin/x64/dxc.exe" 
 			${myfile}
@@ -51,7 +51,7 @@ foreach(myfile ${fs_file})
 	get_filename_component(variable_name ${myfile} NAME_WE ABSOLUTE)
 	get_source_file_property(MyEntry ${myfile} Entry)
 	if(${MyEntry} STREQUAL NOTFOUND)
-		add_custom_command(TARGET DQ_Shaders PRE_BUILD 
+		add_custom_command(TARGET DQ_Shaders POST_BUILD 
 			COMMAND 
 			"${PROJECT_SOURCE_DIR}/ThirdParty/DirectXShaderCompiler/bin/x64/dxc.exe" 
 			${myfile}
@@ -65,7 +65,7 @@ foreach(myfile ${fs_file})
 			"${variable_name}_ps"
 		)
 	else()
-		add_custom_command(TARGET DQ_Shaders PRE_BUILD 
+		add_custom_command(TARGET DQ_Shaders POST_BUILD 
 			COMMAND 
 			"${PROJECT_SOURCE_DIR}/ThirdParty/DirectXShaderCompiler/bin/x64/dxc.exe" 
 			${myfile}
