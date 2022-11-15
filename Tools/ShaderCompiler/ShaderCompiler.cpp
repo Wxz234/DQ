@@ -9,6 +9,12 @@ enum class ShaderType
 
 void CompileShader(const char* path, const char* entry, ShaderType type)
 {
+	std::filesystem::path myPath{ path };
+	auto myExtension = myPath.extension();
+	if (myExtension.string() != ".hlsl") {
+		return;
+	}
+
 	std::string dxcPath = std::string(PROJECT_PATH) + "/ThirdParty/DirectXShaderCompiler/bin/x64/dxc.exe";
 	std::string shaderPath = std::string(PROJECT_PATH) + "/Shaders/" + std::string(path);
 	std::string entryName = entry;
@@ -22,7 +28,6 @@ void CompileShader(const char* path, const char* entry, ShaderType type)
 		targerName = "ps_6_6";
 	}
 
-	std::filesystem::path myPath{ path };
 	auto myPathStem = myPath.stem();
 	std::string headerName = myPathStem.string() + ".h";
 	std::string headrPath = std::string(PROJECT_PATH) + "/Include/DQ/Shaders/" + headerName;
