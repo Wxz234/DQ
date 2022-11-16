@@ -50,6 +50,7 @@ namespace DQ
 			psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 			psoDesc.SampleDesc.Count = 1;
 			p_Device->pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pGBufferPSO));
+			
 		}
 
 		~Renderer()
@@ -105,6 +106,11 @@ namespace DQ
 			signature->Release();
 		}
 
+		void _updateResource()
+		{
+
+		}
+
 		IScene* pScene = nullptr;
 
 		IDevice* p_Device = nullptr;
@@ -112,6 +118,7 @@ namespace DQ
 		ID3D12CommandAllocator* pGAllocator = nullptr;
 		ID3D12RootSignature* pRendererRoot = nullptr;
 		ID3D12PipelineState* pGBufferPSO = nullptr;
+		ID3D12Resource* pGBufferCB0 = nullptr;
 	};
 
 	void InitRenderer(RendererDesc* pDesc, IRenderer** ppRenderer)
