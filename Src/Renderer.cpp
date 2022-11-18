@@ -5,6 +5,7 @@
 #include <d3dcommon.h>
 #include <DirectXMath.h>
 #include <cstdint>
+#include <cstddef>
 namespace DQ
 {
 
@@ -44,13 +45,6 @@ namespace DQ
 		uint64_t static_index;
 	};
 
-	class TexturePool
-	{
-
-	};
-	//all resource
-	// 0 b0 gbuffer
-
 	class Renderer : public IRenderer
 	{
 	public:
@@ -70,6 +64,8 @@ namespace DQ
 			// cmd
 			p_Device->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pGAllocator));
 			p_Device->pDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&pGList));
+			p_Device->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&pCopyAllocator));
+			p_Device->pDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_COPY, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&pCopyList));
 			// root signature
 			_createRootSignature();
 			// descriptor heap
@@ -106,48 +102,44 @@ namespace DQ
 				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
 				cbvDesc.BufferLocation = pGBufferCB0->GetGPUVirtualAddress();
 				cbvDesc.SizeInBytes = gbufferSize;
+
 				pResourceDescriptorHeap->AllocStaticView(&cbvDesc);
+				++mViewOffset;
 			}
 		}
 
 		~Renderer()
 		{
+			if (pUpload_temp_res)
+			{
+				pUpload_temp_res->Release();
+			}
+
 			pGBufferCB0->Release();
 			pGBufferPSO->Release();
 			delete pResourceDescriptorHeap;
 			pRendererRoot->Release();
+			pCopyList->Release();
+			pCopyAllocator->Release();
 			pGList->Release();
 			pGAllocator->Release();
 		}
 
 		void Render()
 		{
-			if (pScene)
+			if (p_Scene && p_Scene->HasData())
 			{
-				_cmd_open();
-				_cmd_close();
-				_cmd_execute();
+
 			}
 
 			p_Device->Present();
 		}
 
-		void _cmd_open()
-		{
-			pGAllocator->Reset();
-			pGList->Reset(pGAllocator, nullptr);
-		}
-
-		void _cmd_close()
-		{
-			pGList->Close();
-		}
-
-		void _cmd_execute()
-		{
-			ID3D12CommandList* pLists[1] = { pGList };
-			p_Device->pGraphicsQueue->ExecuteCommandLists(1, pLists);
-		}
+		//void _cmd_execute()
+		//{
+		//	ID3D12CommandList* pLists[1] = { pGList };
+		//	p_Device->pGraphicsQueue->ExecuteCommandLists(1, pLists);
+		//}
 
 		void _createRootSignature()
 		{
@@ -172,27 +164,81 @@ namespace DQ
 
 		void _uploadTexture()
 		{
+			auto pData = p_Scene->pTextureData;
+			auto texSize = pData->size();
 
+			pCopyAllocator->Reset();
+			pCopyList->Reset(pGAllocator, nullptr);
+
+			for (size_t i = 0;i < texSize; ++i)
+			{
+				auto textureData = pData->at(i);
+				CD3DX12_RESOURCE_DESC texDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, textureData.mWidth, textureData.mHeight);
+				auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+				ID3D12Resource* pRes;
+				p_Device->pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &texDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&pRes));
+				mTexture.emplace_back(pRes);
+
+				const UINT64 uploadBufferSize = GetRequiredIntermediateSize(pRes, 0, 1);
+				if(!pUpload_temp_res || temp_res_size < uploadBufferSize)
+				{
+					if (pUpload_temp_res)
+					{
+						pUpload_temp_res->Release();
+					}
+
+					heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
+					auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+					p_Device->pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&pUpload_temp_res));
+				}
+				temp_res_size = uploadBufferSize;
+
+				D3D12_SUBRESOURCE_DATA textureSubData = {};
+				textureSubData.pData = textureData.mData.data();
+				textureSubData.RowPitch = static_cast<LONG_PTR>((4 * textureData.mWidth));
+				textureSubData.SlicePitch = textureSubData.RowPitch * textureData.mHeight;
+
+				UpdateSubresources(pCopyList, pRes, pUpload_temp_res, 0, 0, 1, &textureSubData);
+				auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(pRes, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+				pCopyList->ResourceBarrier(1, &barrier);
+			}
+
+			pCopyList->Close();
+			ID3D12CommandList* pLists[1] = { pCopyList };
+			p_Device->pCopyQueue->ExecuteCommandLists(1, pLists);
+			p_Device->Wait(D3D12_COMMAND_LIST_TYPE_COPY);
 		}
 
-		void SwitchScene(IScene* pScene)
+		void SetScene(IScene* pScene)
 		{
-			if (!this->pScene)
-			{
-				this->pScene = pScene;
-			}
-			else
-			{
+			p_Scene = pScene;
 
+			if (p_Scene->HasData())
+			{
+				if (!mTexture.empty())
+				{
+					for (auto p : mTexture)
+					{
+						p->Release();
+					}
+					mTexture.clear();
+				}
+				_uploadTexture();
 			}
 		}
 
-		IScene* pScene = nullptr;
+		IScene* p_Scene = nullptr;
 		std::vector<ID3D12Resource*> mTexture;
+		ID3D12Resource* pUpload_temp_res = nullptr;
+		uint64_t temp_res_size = 0;
+
+		uint32_t mViewOffset = 0;
 
 		IDevice* p_Device = nullptr;
 		ID3D12GraphicsCommandList7* pGList = nullptr;
 		ID3D12CommandAllocator* pGAllocator = nullptr;
+		ID3D12GraphicsCommandList7* pCopyList = nullptr;
+		ID3D12CommandAllocator* pCopyAllocator = nullptr;
 		ID3D12RootSignature* pRendererRoot = nullptr;
 		ID3D12PipelineState* pGBufferPSO = nullptr;
 		ID3D12Resource* pGBufferCB0 = nullptr;

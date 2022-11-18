@@ -81,17 +81,28 @@ namespace DQ
 		{
 			pDevice = _getDevice();
 			pGraphicsQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT);
+			pCopyQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_COPY);
 			pSwapChain = _getSwapChain(pGraphicsQueue, (HWND)pDesc->mHandle.window, pDesc->mWidth, pDesc->mHeight);
 			mGFenceValue = 1;
 			pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pGFence));
 			mGFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
 
+			mCopyFenceValue = 1;
+			pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pCopyFence));
+			mCopyFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+
 			_wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
+			_wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
 		}
 
 		~Device()
 		{
 			_wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
+			_wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
+
+			CloseHandle(mCopyFenceEvent);
+			pCopyFence->Release();
+			pCopyQueue->Release();
 			CloseHandle(mGFenceEvent);
 			pGFence->Release();
 			pGraphicsQueue->Release();
@@ -103,11 +114,28 @@ namespace DQ
 		{
 			pSwapChain->Present(1, 0);
 			_wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
+			_wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
+		}
+
+		void Wait(D3D12_COMMAND_LIST_TYPE type)
+		{
+			if (type == D3D12_COMMAND_LIST_TYPE_DIRECT)
+			{
+				_wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
+			}
+			else if (type == D3D12_COMMAND_LIST_TYPE_COPY)
+			{
+				_wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
+			}
 		}
 
 		uint64_t mGFenceValue = 0;
 		ID3D12Fence* pGFence = nullptr;
 		HANDLE mGFenceEvent = NULL;
+
+		uint64_t mCopyFenceValue = 0;
+		ID3D12Fence* pCopyFence = nullptr;
+		HANDLE mCopyFenceEvent = NULL;
 	};
 
 	void InitDevice(DeviceDesc* pDesc, IDevice** ppDevice)

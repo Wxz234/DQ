@@ -16,10 +16,12 @@ namespace DQ
 	{
 	public:
 		virtual void Present() = 0;
+		virtual void Wait(D3D12_COMMAND_LIST_TYPE type) = 0;
 
 		ID3D12Device6* pDevice = nullptr;
 		IDXGISwapChain4* pSwapChain = nullptr;
 		ID3D12CommandQueue* pGraphicsQueue = nullptr;
+		ID3D12CommandQueue* pCopyQueue = nullptr;
 	};
 
 	void InitDevice(DeviceDesc* pDesc, IDevice** ppDevice);

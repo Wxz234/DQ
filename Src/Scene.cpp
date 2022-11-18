@@ -4,22 +4,28 @@ namespace DQ
 	class Scene : public IScene
 	{
 	public:
+		Scene()
+		{
+
+		}
+
 		~Scene()
-		{
-
-		}
-
-		void LoadModel(const char* filePath)
-		{
-
-		}
-
-		void Update()
 		{
 			
 		}
 
+		bool HasData() const
+		{
+			return mHasData;
+		}
+
+		void LoadModel(const char* filePath)
+		{
+			mHasData = true;
+		}
+
 		std::shared_ptr<std::vector<MeshData>> pMeshData;
+		bool mHasData = false;
 	};
 
 	void InitScene(IScene** ppScene)
