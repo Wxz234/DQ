@@ -13,6 +13,11 @@ namespace DQ
 		{
 
 		}
+
+		void Update()
+		{
+
+		}
 	};
 
 	void InitScene(IScene** ppScene)
@@ -21,7 +26,6 @@ namespace DQ
 		{
 			*ppScene = new Scene;
 		}
-		return;
 	}
 
 	void RemoveScene(IScene* pScene)

@@ -7,7 +7,7 @@ struct SceneVertex
 	float3 normal : NORMAL;
 };
 
-cbuffer c_GBuffer : register(b0)
+struct c_GBuffer
 {
 	matrix c_model;
 	matrix c_view;
@@ -22,8 +22,9 @@ void main(
 	out float3 o_wnormal : NORMAL
 )
 {
-	matrix mvp = c_model * c_view * c_proj;
+	ConstantBuffer<c_GBuffer> camera = ResourceDescriptorHeap[0];
+	matrix mvp = camera.c_model * camera.c_view * camera.c_proj;
 	o_position = mul(mvp, float4(i_vtx.position, 1.0));
 	o_texcoord = i_vtx.texcoord;
-	o_wnormal = normalize(mul((float3x3)c_world_inv_transpose, i_vtx.normal));
+	o_wnormal = normalize(mul((float3x3)camera.c_world_inv_transpose, i_vtx.normal));
 }

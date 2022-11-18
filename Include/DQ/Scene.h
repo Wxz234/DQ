@@ -15,6 +15,7 @@ namespace DQ
 		};
 
 		virtual void LoadModel(const char* filePath) = 0;
+		virtual void Update() = 0;
 	};
 
 	void InitScene(IScene** ppScene);
