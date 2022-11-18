@@ -14,7 +14,7 @@ public:
 		DQ::RendererDesc rendererDesc{};
 		rendererDesc.pDevice = pDevice;
 		DQ::InitRenderer(&rendererDesc, &pRenderer);
-		pRenderer->SetScene(pScene);
+		pRenderer->SwitchScene(pScene);
 		return true;
 	}
 
@@ -27,7 +27,7 @@ public:
 
 	void Update(float deltaTime)
 	{
-
+		pScene->Update();
 	}
 
 	void Draw()

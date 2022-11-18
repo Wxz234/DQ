@@ -13,6 +13,7 @@ struct c_GBuffer
 	matrix c_view;
 	matrix c_proj;
 	matrix c_world_inv_transpose;
+	float4 c_direction_light;
 };
 
 void main(

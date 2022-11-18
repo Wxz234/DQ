@@ -43,6 +43,11 @@ namespace DQ
 		ID3D12DescriptorHeap* pHeap;
 		uint64_t static_index;
 	};
+
+	class TexturePool
+	{
+
+	};
 	//all resource
 	// 0 b0 gbuffer
 
@@ -56,6 +61,7 @@ namespace DQ
 			DirectX::XMFLOAT4X4 view;
 			DirectX::XMFLOAT4X4 proj;
 			DirectX::XMFLOAT4X4 world_inv_transpose;
+			DirectX::XMFLOAT4 direction_light;
 		};
 
 		Renderer(RendererDesc* pDesc)
@@ -102,7 +108,6 @@ namespace DQ
 				cbvDesc.SizeInBytes = gbufferSize;
 				pResourceDescriptorHeap->AllocStaticView(&cbvDesc);
 			}
-
 		}
 
 		~Renderer()
@@ -113,11 +118,6 @@ namespace DQ
 			pRendererRoot->Release();
 			pGList->Release();
 			pGAllocator->Release();
-		}
-
-		void SetScene(IScene* pScene)
-		{
-			this->pScene = pScene;
 		}
 
 		void Render()
@@ -170,7 +170,25 @@ namespace DQ
 			return size / 256 * 256 + 256;
 		}
 
+		void _uploadTexture()
+		{
+
+		}
+
+		void SwitchScene(IScene* pScene)
+		{
+			if (!this->pScene)
+			{
+				this->pScene = pScene;
+			}
+			else
+			{
+
+			}
+		}
+
 		IScene* pScene = nullptr;
+		std::vector<ID3D12Resource*> mTexture;
 
 		IDevice* p_Device = nullptr;
 		ID3D12GraphicsCommandList7* pGList = nullptr;

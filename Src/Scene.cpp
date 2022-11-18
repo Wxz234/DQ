@@ -16,8 +16,10 @@ namespace DQ
 
 		void Update()
 		{
-
+			
 		}
+
+		std::shared_ptr<std::vector<MeshData>> pMeshData;
 	};
 
 	void InitScene(IScene** ppScene)

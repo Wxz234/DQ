@@ -108,7 +108,6 @@ namespace DQ
 		uint64_t mGFenceValue = 0;
 		ID3D12Fence* pGFence = nullptr;
 		HANDLE mGFenceEvent = NULL;
-
 	};
 
 	void InitDevice(DeviceDesc* pDesc, IDevice** ppDevice)
