@@ -1,4 +1,6 @@
 #include "DQ/Scene.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 namespace DQ
 {
 	class Scene : public IScene
@@ -14,18 +16,18 @@ namespace DQ
 			
 		}
 
-		bool HasData() const
+		bool HasRenderableObject() const
 		{
-			return mHasData;
+			return mHasRenderable;
 		}
 
 		void LoadModel(const char* filePath)
 		{
-			mHasData = true;
+			mHasRenderable = true;
 		}
 
 		std::shared_ptr<std::vector<MeshData>> pMeshData;
-		bool mHasData = false;
+		bool mHasRenderable = false;
 	};
 
 	void InitScene(IScene** ppScene)

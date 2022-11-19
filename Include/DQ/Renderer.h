@@ -11,7 +11,7 @@ namespace DQ
 	class IRenderer
 	{
 	public:
-		virtual void SetScene(IScene* pScene) = 0;
+		virtual void LoadScene(IScene* pScene) = 0;
 		virtual void Render() = 0;
 	};
 

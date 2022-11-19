@@ -39,6 +39,18 @@ namespace DQ
 			CD3DX12_CPU_DESCRIPTOR_HANDLE handle(pHeap->GetCPUDescriptorHandleForHeapStart(), static_index++, size);
 			p_Device->pDevice->CreateConstantBufferView(cbvDesc, handle);
 		}
+
+		void AllocDynamicView(const D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc, uint64_t offset, ID3D12Resource* pRes)
+		{
+			auto size = p_Device->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			CD3DX12_CPU_DESCRIPTOR_HANDLE handle(pHeap->GetCPUDescriptorHandleForHeapStart(), offset, size);
+			p_Device->pDevice->CreateShaderResourceView(pRes, srvDesc, handle);
+		}
+
+		uint64_t GetOffset() const
+		{
+			return static_index;
+		}
 	private:
 		IDevice* p_Device;
 		ID3D12DescriptorHeap* pHeap;
@@ -104,7 +116,6 @@ namespace DQ
 				cbvDesc.SizeInBytes = gbufferSize;
 
 				pResourceDescriptorHeap->AllocStaticView(&cbvDesc);
-				++mViewOffset;
 			}
 		}
 
@@ -127,19 +138,13 @@ namespace DQ
 
 		void Render()
 		{
-			if (p_Scene && p_Scene->HasData())
+			if (p_Scene && p_Scene->HasRenderableObject())
 			{
 
 			}
 
 			p_Device->Present();
 		}
-
-		//void _cmd_execute()
-		//{
-		//	ID3D12CommandList* pLists[1] = { pGList };
-		//	p_Device->pGraphicsQueue->ExecuteCommandLists(1, pLists);
-		//}
 
 		void _createRootSignature()
 		{
@@ -209,21 +214,32 @@ namespace DQ
 			p_Device->Wait(D3D12_COMMAND_LIST_TYPE_COPY);
 		}
 
-		void SetScene(IScene* pScene)
+		void _updateTextureView()
+		{
+			auto heapOffset = pResourceDescriptorHeap->GetOffset();
+			for (auto p : mTexture)
+			{
+				pResourceDescriptorHeap->AllocDynamicView(nullptr, heapOffset++, p);
+			}
+		}
+
+		void LoadScene(IScene* pScene)
 		{
 			p_Scene = pScene;
 
-			if (p_Scene->HasData())
+			if (!mTexture.empty())
 			{
-				if (!mTexture.empty())
+				for (auto p : mTexture)
 				{
-					for (auto p : mTexture)
-					{
-						p->Release();
-					}
-					mTexture.clear();
+					p->Release();
 				}
+				mTexture.clear();
+			}
+
+			if (p_Scene->HasRenderableObject())
+			{
 				_uploadTexture();
+				_updateTextureView();
 			}
 		}
 
@@ -231,8 +247,6 @@ namespace DQ
 		std::vector<ID3D12Resource*> mTexture;
 		ID3D12Resource* pUpload_temp_res = nullptr;
 		uint64_t temp_res_size = 0;
-
-		uint32_t mViewOffset = 0;
 
 		IDevice* p_Device = nullptr;
 		ID3D12GraphicsCommandList7* pGList = nullptr;

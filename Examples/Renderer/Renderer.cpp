@@ -14,7 +14,7 @@ public:
 		DQ::RendererDesc rendererDesc{};
 		rendererDesc.pDevice = pDevice;
 		DQ::InitRenderer(&rendererDesc, &pRenderer);
-		pRenderer->SetScene(pScene);
+		pRenderer->LoadScene(pScene);
 		return true;
 	}
 
