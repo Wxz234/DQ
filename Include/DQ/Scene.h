@@ -18,6 +18,7 @@ namespace DQ
 		struct MeshData
 		{
 			std::vector<DirectX::XMFLOAT3> mVertices;
+			std::vector<DirectX::XMFLOAT3> mNormals;
 			std::vector<uint32_t> mIndices;
 			std::vector<DirectX::XMFLOAT2> mTexCoord;
 			uint32_t mVertexID;
