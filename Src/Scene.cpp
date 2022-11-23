@@ -377,7 +377,6 @@ namespace DQ
 			}
 		}
 
-		std::shared_ptr<std::vector<MeshData>> pMeshData;
 		bool mHasRenderable = false;
 		uint32_t mesh_index = 0;
 	};

@@ -42,7 +42,7 @@ namespace DQ
 		DirectX::XMFLOAT4 mDirectionLight = DirectX::XMFLOAT4(0.f, 1.f, 0.f, 0.f);
 		Camera mCamera;
 
-		std::shared_ptr<std::vector<MeshData>> pCullingMeshData;
+		std::shared_ptr<std::vector<MeshData>> pMeshData;
 		std::shared_ptr<std::vector<TextureData>> pTextureData;
 	};
 

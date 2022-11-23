@@ -5,6 +5,7 @@ struct SceneVertex
 	float3 position : POSITION;
 	float2 texcoord : TEXCOORD;
 	float3 normal : NORMAL;
+	uint   materialID : MATERIAL_ID;
 };
 
 struct c_GBuffer
@@ -20,7 +21,8 @@ void main(
 	in SceneVertex i_vtx,
 	out float4 o_position : SV_POSITION,
 	out float2 o_texcoord : TEXCOORD,
-	out float3 o_wnormal : NORMAL
+	out float3 o_wnormal : NORMAL,
+	out uint   o_materialID : MATERIAL_ID
 )
 {
 	ConstantBuffer<c_GBuffer> camera = ResourceDescriptorHeap[0];
@@ -28,4 +30,5 @@ void main(
 	o_position = mul(mvp, float4(i_vtx.position, 1.0));
 	o_texcoord = i_vtx.texcoord;
 	o_wnormal = normalize(mul((float3x3)camera.c_world_inv_transpose, i_vtx.normal));
+	o_materialID = i_vtx.materialID;
 }

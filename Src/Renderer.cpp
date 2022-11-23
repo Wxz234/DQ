@@ -8,7 +8,6 @@
 #include <cstddef>
 namespace DQ
 {
-
 	class IDynamicDescriptorHeap
 	{
 	public:
@@ -17,7 +16,7 @@ namespace DQ
 			static_index = 0;
 			p_Device = pDevice;
 			D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-			heapDesc.NumDescriptors = 1000000;
+			heapDesc.NumDescriptors = 100000;
 			heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			heapDesc.Type = type;
 			p_Device->pDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pHeap));
@@ -57,6 +56,25 @@ namespace DQ
 		uint64_t static_index;
 	};
 
+	class IRendererBuffer
+	{
+	public:
+		IRendererBuffer(IDevice* pDevice)
+		{
+			p_Device = pDevice;
+			CD3DX12_HEAP_DESC desc;
+			//p_Device->pDevice->CreateHeap()
+			//p_Device->pDevice->CreateHeap()
+			
+		}
+	private:
+		IDevice* p_Device;
+		ID3D12Heap* pVBHeap;
+		ID3D12Heap* pIBHeap;
+		ID3D12Resource* pVB;
+		ID3D12Resource* pIB;
+	};
+
 	class Renderer : public IRenderer
 	{
 	public:
@@ -82,16 +100,19 @@ namespace DQ
 			_createRootSignature();
 			// descriptor heap
 			pResourceDescriptorHeap = new IDynamicDescriptorHeap(p_Device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			// vertex buffer and index buffer
+			pRendererBuffer = new IRendererBuffer(p_Device);
 			// gbuffer pipeline
 			{
 				D3D12_INPUT_ELEMENT_DESC gbufferInputElementDescs[] =
 				{
 					{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 					{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-					{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+					{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+					{ "MATERIAL_ID", 0, DXGI_FORMAT_R32_UINT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 				};
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.InputLayout = { gbufferInputElementDescs, 3 };
+				psoDesc.InputLayout = { gbufferInputElementDescs, 4 };
 				psoDesc.pRootSignature = pRendererRoot;
 				psoDesc.VS = CD3DX12_SHADER_BYTECODE(gbuffer_vs, sizeof(gbuffer_vs));
 				psoDesc.PS = CD3DX12_SHADER_BYTECODE(gbuffer_ps, sizeof(gbuffer_ps));
@@ -128,6 +149,7 @@ namespace DQ
 
 			pGBufferCB0->Release();
 			pGBufferPSO->Release();
+			delete pRendererBuffer;
 			delete pResourceDescriptorHeap;
 			pRendererRoot->Release();
 			pCopyList->Release();
@@ -245,6 +267,7 @@ namespace DQ
 
 		IScene* p_Scene = nullptr;
 		std::vector<ID3D12Resource*> mTexture;
+
 		ID3D12Resource* pUpload_temp_res = nullptr;
 		uint64_t temp_res_size = 0;
 
@@ -257,6 +280,7 @@ namespace DQ
 		ID3D12PipelineState* pGBufferPSO = nullptr;
 		ID3D12Resource* pGBufferCB0 = nullptr;
 		IDynamicDescriptorHeap* pResourceDescriptorHeap = nullptr;
+		IRendererBuffer* pRendererBuffer = nullptr;
 	};
 
 	void InitRenderer(RendererDesc* pDesc, IRenderer** ppRenderer)
