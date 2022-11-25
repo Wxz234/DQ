@@ -377,6 +377,11 @@ namespace DQ
 			}
 		}
 
+		void Update()
+		{
+
+		}
+
 		bool mHasRenderable = false;
 		uint32_t mesh_index = 0;
 	};

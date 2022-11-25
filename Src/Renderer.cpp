@@ -62,17 +62,27 @@ namespace DQ
 		IRendererBuffer(IDevice* pDevice)
 		{
 			p_Device = pDevice;
-			CD3DX12_HEAP_DESC desc;
-			//p_Device->pDevice->CreateHeap()
-			//p_Device->pDevice->CreateHeap()
-			
+
+			CD3DX12_HEAP_DESC vbHeapDesc(1024 * 1024 * 4, CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD));
+			p_Device->pDevice->CreateHeap(&vbHeapDesc, IID_PPV_ARGS(&pVBHeap));
+			CD3DX12_HEAP_DESC ibHeapDesc(1024 * 1024 * 4, CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD));
+			p_Device->pDevice->CreateHeap(&vbHeapDesc, IID_PPV_ARGS(&pIBHeap));
+		}
+
+		~IRendererBuffer()
+		{
+			pVBHeap->Release();
+			pIBHeap->Release();
+		}
+
+		void BindMeshData(std::shared_ptr<std::vector<IScene::MeshData>> pData)
+		{
+
 		}
 	private:
 		IDevice* p_Device;
 		ID3D12Heap* pVBHeap;
 		ID3D12Heap* pIBHeap;
-		ID3D12Resource* pVB;
-		ID3D12Resource* pIB;
 	};
 
 	class Renderer : public IRenderer
@@ -92,8 +102,8 @@ namespace DQ
 		{
 			p_Device = pDesc->pDevice;
 			// cmd
-			p_Device->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pGAllocator));
-			p_Device->pDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&pGList));
+			p_Device->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pGBufferAllocator));
+			p_Device->pDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&pGBufferList));
 			p_Device->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&pCopyAllocator));
 			p_Device->pDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_COPY, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&pCopyList));
 			// root signature
@@ -154,16 +164,19 @@ namespace DQ
 			pRendererRoot->Release();
 			pCopyList->Release();
 			pCopyAllocator->Release();
-			pGList->Release();
-			pGAllocator->Release();
+			pGBufferList->Release();
+			pGBufferAllocator->Release();
 		}
 
 		void Render()
 		{
-			if (p_Scene && p_Scene->HasRenderableObject())
-			{
+			// GBuffer Pass
+			pGBufferAllocator->Reset();
+			pGBufferList->Reset(pGBufferAllocator, pGBufferPSO);
 
-			}
+			pGBufferList->Close();
+			ID3D12CommandList* pGBufferLists[] = { pGBufferList };
+			p_Device->pGraphicsQueue->ExecuteCommandLists(1, pGBufferLists);
 
 			p_Device->Present();
 		}
@@ -195,7 +208,7 @@ namespace DQ
 			auto texSize = pData->size();
 
 			pCopyAllocator->Reset();
-			pCopyList->Reset(pGAllocator, nullptr);
+			pCopyList->Reset(pCopyAllocator, nullptr);
 
 			for (size_t i = 0;i < texSize; ++i)
 			{
@@ -245,9 +258,19 @@ namespace DQ
 			}
 		}
 
-		void LoadScene(IScene* pScene)
+		void _bindSceneVB_IB()
+		{
+			auto pMeshData = p_Scene->pMeshData;
+			pRendererBuffer->BindMeshData(pMeshData);
+		}
+
+		bool LoadScene(IScene* pScene)
 		{
 			p_Scene = pScene;
+			if (!p_Scene)
+			{
+				return false;
+			}
 
 			if (!mTexture.empty())
 			{
@@ -262,7 +285,11 @@ namespace DQ
 			{
 				_uploadTexture();
 				_updateTextureView();
+				// bind vb and ib
+				_bindSceneVB_IB();
 			}
+
+			return true;
 		}
 
 		IScene* p_Scene = nullptr;
@@ -272,13 +299,16 @@ namespace DQ
 		uint64_t temp_res_size = 0;
 
 		IDevice* p_Device = nullptr;
-		ID3D12GraphicsCommandList7* pGList = nullptr;
-		ID3D12CommandAllocator* pGAllocator = nullptr;
+
+		ID3D12GraphicsCommandList7* pGBufferList = nullptr;
+		ID3D12CommandAllocator* pGBufferAllocator = nullptr;
 		ID3D12GraphicsCommandList7* pCopyList = nullptr;
 		ID3D12CommandAllocator* pCopyAllocator = nullptr;
+
 		ID3D12RootSignature* pRendererRoot = nullptr;
 		ID3D12PipelineState* pGBufferPSO = nullptr;
 		ID3D12Resource* pGBufferCB0 = nullptr;
+
 		IDynamicDescriptorHeap* pResourceDescriptorHeap = nullptr;
 		IRendererBuffer* pRendererBuffer = nullptr;
 	};

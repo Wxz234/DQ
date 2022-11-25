@@ -38,6 +38,7 @@ namespace DQ
 
 		virtual bool HasRenderableObject() const = 0;
 		virtual void LoadModel(const char* filePath) = 0;
+		virtual void Update() = 0;
 
 		DirectX::XMFLOAT4 mDirectionLight = DirectX::XMFLOAT4(0.f, 1.f, 0.f, 0.f);
 		Camera mCamera;

@@ -27,6 +27,7 @@ public:
 
 	void Update(float deltaTime)
 	{
+		pScene->Update();
 	}
 
 	void Draw()
