@@ -1,6 +1,6 @@
 #include <DQ/Window/Window.h>
 
-class HelloWorld : public DQ::IApp
+class Window : public DQ::IApp
 {
 public:
     bool Init()
@@ -24,8 +24,8 @@ public:
 
     const char* GetName()
     {
-        return "HelloWorld";
+        return "Window";
     }
 };
 
-DEFINE_APPLICATION_MAIN(HelloWorld)
+DEFINE_APPLICATION_MAIN(Window)

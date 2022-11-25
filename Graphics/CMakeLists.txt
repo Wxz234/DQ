@@ -1,0 +1,4 @@
+add_library(DQ-Graphics STATIC "Graphics.cpp")
+target_include_directories(DQ-Graphics PUBLIC "${PROJECT_SOURCE_DIR}/Include")
+target_link_libraries(DQ-Graphics PUBLIC d3d12.lib dxgi.lib dxguid.lib)
+set_target_properties(DQ-Graphics PROPERTIES FOLDER "DQ")
