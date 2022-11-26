@@ -22,7 +22,7 @@ namespace DQ
         std::optional<HWND> mHwnd;
     };
 
-    int WindowsMain(HINSTANCE hInstance, IApp* app);
+    int WindowsMain(HINSTANCE hInstance, IApp* pApp);
 }
 
 #define DEFINE_APPLICATION_MAIN(appClass)   \

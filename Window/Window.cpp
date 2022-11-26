@@ -12,7 +12,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 namespace DQ
 {
-    int WindowsMain(HINSTANCE hInstance, IApp* app)
+    int WindowsMain(HINSTANCE hInstance, IApp* pApp)
     {
         WNDCLASSEXA wcex{};
         wcex.cbSize = sizeof(WNDCLASSEXA);
@@ -28,13 +28,13 @@ namespace DQ
         RegisterClassExA(&wcex);
 
         auto stype = WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX;
-        RECT rc = { 0, 0, static_cast<LONG>(app->mSettings.mWidth), static_cast<LONG>(app->mSettings.mHeight) };
+        RECT rc = { 0, 0, static_cast<LONG>(pApp->mSettings.mWidth), static_cast<LONG>(pApp->mSettings.mHeight) };
         AdjustWindowRect(&rc, stype, FALSE);
-        auto hwnd = CreateWindowExA(0, "DQ", app->GetName(), stype, CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, wcex.hInstance, nullptr);
+        auto hwnd = CreateWindowExA(0, "DQ", pApp->GetName(), stype, CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, wcex.hInstance, nullptr);
         ShowWindow(hwnd, SW_SHOWDEFAULT);
 
-        app->mHwnd = hwnd;
-        app->Init();
+        pApp->mHwnd = hwnd;
+        pApp->Init();
 
         LARGE_INTEGER frequency;
         LARGE_INTEGER nowTime, lastTime;
@@ -55,12 +55,12 @@ namespace DQ
                 QueryPerformanceCounter(&nowTime);
                 float deltaTimeFloat = (nowTime.QuadPart - lastTime.QuadPart) / (float)frequency.QuadPart;
                 lastTime = nowTime;
-                app->Update(deltaTimeFloat);
-                app->Draw();
+                pApp->Update(deltaTimeFloat);
+                pApp->Draw();
             }
         }
 
-        app->Exit();
+        pApp->Exit();
 
         return 0;
     }
