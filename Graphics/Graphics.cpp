@@ -1,5 +1,5 @@
 #include <DQ/Graphics/Graphics.h>
-
+#include "D3D12MemAlloc.h"
 #define FRAME_COUNT 2
 #define FRAME_FORMAT DXGI_FORMAT_R8G8B8A8_UNORM
 
@@ -73,6 +73,21 @@ void _wait(uint64_t& fenceValue, ID3D12CommandQueue* pQueue, ID3D12Fence* pFence
     }
 }
 
+IDXGIAdapter4* _getAdapter()
+{
+    IDXGIFactory7* pFactory;
+#ifdef _DEBUG
+    CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&pFactory));
+#else
+    CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory));
+#endif
+    IDXGIAdapter4* pAdapter;
+    pFactory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&pAdapter));
+    pFactory->Release();
+    return pAdapter;
+    
+}
+
 namespace DQ
 {
     class GraphicsDevice : public IGraphicsDevice
@@ -80,7 +95,8 @@ namespace DQ
     public:
         GraphicsDevice(HWND hwnd, uint32_t width, uint32_t height)
         {
-            pDevice = _getDevice();
+            pAdapter = _getAdapter();
+            pDevice = _getDevice(pAdapter);
             pGraphicsQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT);
             //pCopyQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_COPY);
             pSwapChain = _getSwapChain(pGraphicsQueue, hwnd, width, height);
@@ -92,6 +108,10 @@ namespace DQ
             //pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pCopyFence));
             //mCopyFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
 
+            D3D12MA::ALLOCATOR_DESC allocatorDesc{};
+            allocatorDesc.pDevice = pDevice;
+            allocatorDesc.pAdapter = pAdapter;
+            D3D12MA::CreateAllocator(&allocatorDesc, &pAllocator);
             _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
             //_wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
         }
@@ -100,18 +120,23 @@ namespace DQ
         {
             _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
 
+            pAllocator->Release();
+
             CloseHandle(mGFenceEvent);
             pGFence->Release();
             pSwapChain->Release();
             pGraphicsQueue->Release();
             pDevice->Release();
+            pAdapter->Release();
         }
 
         virtual void Present() 
         {
             pSwapChain->Present(1, 0);
+            _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
         }
 
+        IDXGIAdapter4* pAdapter;
         ID3D12Device6* pDevice;
         ID3D12CommandQueue* pGraphicsQueue;
         //ID3D12CommandQueue* pCopyQueue;
@@ -120,6 +145,8 @@ namespace DQ
         uint64_t mGFenceValue;
         ID3D12Fence* pGFence;
         HANDLE mGFenceEvent;
+
+        D3D12MA::Allocator* pAllocator;
 
         //uint64_t mCopyFenceValue;
         //ID3D12Fence* pCopyFence;
