@@ -1,7 +1,7 @@
 #include <DQ/Window/Window.h>
 #include <DQ/Graphics/Graphics.h>
 
-class Window : public DQ::IApp
+class Scene : public DQ::IApp
 {
 public:
     bool Init()
@@ -21,10 +21,10 @@ public:
 
     const char* GetName()
     {
-        return "Window";
+        return "Scene";
     }
 
     std::shared_ptr<DQ::IGraphicsDevice> pDevice;
 };
 
-DEFINE_APPLICATION_MAIN(Window)
+DEFINE_APPLICATION_MAIN(Scene)
