@@ -1,3 +1,5 @@
-add_executable(Scene WIN32 Scene.cpp)
+set_source_files_properties(GBufferVS.hlsl PROPERTIES VS_SHADER_TYPE Vertex VS_SHADER_MODEL 6.6)
+set_source_files_properties(GBufferPS.hlsl PROPERTIES VS_SHADER_TYPE Pixel VS_SHADER_MODEL 6.6)
+add_executable(Scene WIN32 Scene.cpp GBufferVS.hlsl GBufferPS.hlsl)
 target_link_libraries(Scene PRIVATE DQ-Window DQ-Graphics DQ-Scene)
 set_target_properties(Scene PROPERTIES FOLDER "Examples")

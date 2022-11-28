@@ -136,6 +136,11 @@ namespace DQ
             _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
         }
 
+        ID3D12Device* GetDevice() const
+        {
+            return pDevice;
+        }
+
         IDXGIAdapter4* pAdapter;
         ID3D12Device6* pDevice;
         ID3D12CommandQueue* pGraphicsQueue;

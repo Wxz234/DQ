@@ -9,6 +9,7 @@ namespace DQ
     {
     public:
         virtual void Present() = 0;
+        virtual ID3D12Device* GetDevice() const = 0;
     };
 
     std::shared_ptr<IGraphicsDevice> CreateGraphicsDevice(HWND hwnd, uint32_t width, uint32_t height);
