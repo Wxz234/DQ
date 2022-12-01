@@ -2,6 +2,8 @@
 #include <DQ/Graphics/Graphics.h>
 #include <DQ/Scene/Scene.h>
 #include <DQ/Utility/ReadData.h>
+#include <DirectXMath.h>
+#include <cstdint>
 
 class Scene : public DQ::IApp
 {
@@ -12,8 +14,7 @@ public:
         pScene = DQ::CreateScene();
         pScene->LoadModel("Box/Box.gltf");
 
-        _CreateRootSignature(pDevice->GetDevice());
-        _CreateGBufferPipeline(pDevice->GetDevice());
+        _InitGraphics();
         return true;
     }
 
@@ -21,12 +22,20 @@ public:
     {
         pRootSignature->Release();
         pGBufferPSO->Release();
+        pGBufferAllocator->Release();
+        pGBufferList->Release();
     }
 
     void Update(float deltaTime) {}
 
     void Draw()
     {
+        _OpenCmdList(pGBufferAllocator, pGBufferList);
+        pGBufferList->SetPipelineState(pGBufferPSO);
+        pGBufferList->SetGraphicsRootSignature(pRootSignature);
+        _CloseCmdList(pGBufferList);
+
+        pDevice->Execute(pGBufferList);
         pDevice->Present();
     }
 
@@ -35,7 +44,7 @@ public:
         return "Scene";
     }
 
-    void _CreateRootSignature(ID3D12Device *pDevicePtr)
+    void _CreateRootSignature()
     {
         D3D12_VERSIONED_ROOT_SIGNATURE_DESC RootSignatureDesc{};
         RootSignatureDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
@@ -47,11 +56,11 @@ public:
         ID3DBlob* signature = nullptr;
         ID3DBlob* error = nullptr;
         D3D12SerializeVersionedRootSignature(&RootSignatureDesc, &signature, &error);
-        pDevicePtr->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
+        pDevice->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
         signature->Release();
     }
 
-    void _CreateGBufferPipeline(ID3D12Device* pDevicePtr)
+    void _CreateGBufferPipeline()
     {
         D3D12_INPUT_ELEMENT_DESC gbufferInputElementDescs[] =
         {
@@ -111,14 +120,80 @@ public:
         psoDesc.NumRenderTargets = 1;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         psoDesc.SampleDesc.Count = 1;
-        pDevicePtr->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pGBufferPSO));
+        pDevice->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pGBufferPSO));
     }
+
+    void _CreateCommand(D3D12_COMMAND_LIST_TYPE type, ID3D12CommandAllocator** ppAllocator, ID3D12GraphicsCommandList** ppList)
+    {
+        pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(ppAllocator));
+        pDevice->GetDevice()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(ppList));
+    }
+
+    void _OpenCmdList(ID3D12CommandAllocator* pCmdAllocator, ID3D12GraphicsCommandList* pCmdList)
+    {
+        pCmdAllocator->Reset();
+        pCmdList->Reset(pCmdAllocator, nullptr);
+    }
+
+    void _CloseCmdList(ID3D12GraphicsCommandList* pCmdList)
+    {
+        pCmdList->Close();
+    }
+
+    void _CreateGBufferData()
+    {
+
+    }
+
+    void _UpdateGBufferData(ID3D12CommandAllocator* pCmdAllocator, ID3D12GraphicsCommandList* pCmdList)
+    {
+        _OpenCmdList(pGBufferAllocator, pGBufferList);
+        _CloseCmdList(pGBufferList);
+        pDevice->Execute(pGBufferList);
+    }
+
+    uint64_t _GetConstantBufferSize(uint64_t size)
+    {
+        if (size == 0)
+        {
+            return 256;
+        }
+        if (size % 256 == 0)
+        {
+            return size;
+        }
+        return (size / 256 + 1) * 256;
+    }
+
+    void _InitGraphics()
+    {
+        _CreateRootSignature();
+
+        _CreateGBufferPipeline();
+        _CreateCommand(D3D12_COMMAND_LIST_TYPE_DIRECT, &pGBufferAllocator, &pGBufferList);
+        _CreateGBufferData();
+        _UpdateGBufferData(pGBufferAllocator, pGBufferList);
+
+        pDevice->Wait();
+    }
+
+    struct GBufferCB0
+    {
+        DirectX::XMFLOAT4X4 Model;
+        DirectX::XMFLOAT4X4 View;
+        DirectX::XMFLOAT4X4 Proj;
+        DirectX::XMFLOAT4X4 ModelInvTranspose;
+        DirectX::XMFLOAT4 DirectionLight;
+    };
 
     std::shared_ptr<DQ::IGraphicsDevice> pDevice;
     std::shared_ptr<DQ::IScene> pScene;
 
     ID3D12RootSignature* pRootSignature = nullptr;
     ID3D12PipelineState* pGBufferPSO = nullptr;
+    ID3D12CommandAllocator* pGBufferAllocator = nullptr;
+    ID3D12GraphicsCommandList* pGBufferList = nullptr;
+    ID3D12Resource* pGBufferCB0 = nullptr;
 };
 
 DEFINE_APPLICATION_MAIN(Scene)
