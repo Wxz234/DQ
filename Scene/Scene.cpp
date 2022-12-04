@@ -4,7 +4,17 @@ namespace DQ
     class Scene : public IScene
     {
     public:
+        Scene()
+        {
+            //auto entity = mRegistry.create();
+        }
+
         void LoadModel(const char* path)
+        {
+
+        }
+
+        void OnUpdate(float t)
         {
 
         }

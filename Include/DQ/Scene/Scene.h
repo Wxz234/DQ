@@ -7,7 +7,7 @@ namespace DQ
     {
     public:
         virtual void LoadModel(const char* path) = 0;
-        //virtual void ExecuteUpdate(float )
+        virtual void OnUpdate(float t) = 0;
     };
 
     std::shared_ptr<IScene> CreateScene();
