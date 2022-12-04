@@ -24,6 +24,8 @@ public:
         pGBufferPSO->Release();
         pGBufferAllocator->Release();
         pGBufferList->Release();
+        pGBufferCB0->Unmap(0, nullptr);
+        pGBufferCB0->Release();
     }
 
     void Update(float deltaTime) {}
@@ -142,14 +144,31 @@ public:
 
     void _CreateGBufferData()
     {
-
+        D3D12_RESOURCE_DESC resourceDesc{};
+        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        resourceDesc.Alignment = 0;
+        resourceDesc.Width = _GetConstantBufferSize(sizeof(GBufferCB0));
+        resourceDesc.Height = 1;
+        resourceDesc.DepthOrArraySize = 1;
+        resourceDesc.MipLevels = 1;
+        resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+        resourceDesc.SampleDesc.Count = 1;
+        resourceDesc.SampleDesc.Quality = 0;
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        D3D12_HEAP_PROPERTIES heapProp{};
+        heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
+        heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heapProp.CreationNodeMask = 1;
+        heapProp.VisibleNodeMask = 1;
+        pDevice->GetDevice()->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&pGBufferCB0));
+        pGBufferCB0->Map(0, nullptr, reinterpret_cast<void**>(&pCPUGBufferCB0));
     }
 
-    void _UpdateGBufferData(ID3D12CommandAllocator* pCmdAllocator, ID3D12GraphicsCommandList* pCmdList)
+    void _UpdateGBufferData()
     {
-        _OpenCmdList(pGBufferAllocator, pGBufferList);
-        _CloseCmdList(pGBufferList);
-        pDevice->Execute(pGBufferList);
+        
     }
 
     uint64_t _GetConstantBufferSize(uint64_t size)
@@ -172,7 +191,7 @@ public:
         _CreateGBufferPipeline();
         _CreateCommand(D3D12_COMMAND_LIST_TYPE_DIRECT, &pGBufferAllocator, &pGBufferList);
         _CreateGBufferData();
-        _UpdateGBufferData(pGBufferAllocator, pGBufferList);
+        _UpdateGBufferData();
 
         pDevice->Wait();
     }
@@ -194,6 +213,7 @@ public:
     ID3D12CommandAllocator* pGBufferAllocator = nullptr;
     ID3D12GraphicsCommandList* pGBufferList = nullptr;
     ID3D12Resource* pGBufferCB0 = nullptr;
+    GBufferCB0* pCPUGBufferCB0 = nullptr;
 };
 
 DEFINE_APPLICATION_MAIN(Scene)
