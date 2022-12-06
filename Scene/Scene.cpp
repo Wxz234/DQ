@@ -6,7 +6,7 @@ namespace DQ
     public:
         Scene()
         {
-            //auto entity = mRegistry.create();
+            //mEntity = mRegistry.create();
         }
 
         void LoadModel(const char* path)
@@ -18,6 +18,12 @@ namespace DQ
         {
 
         }
+
+
+
+
+        entt::registry mRegistry;
+        //entt::entity mEntity;
     };
 
     std::shared_ptr<IScene> CreateScene()
