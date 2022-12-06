@@ -19,11 +19,18 @@ namespace DQ
 
         }
 
+        entt::registry& GetRegistry()
+        {
+            return mRegistry;
+        }
 
-
+        std::vector<entt::entity> GetEntities() const
+        {
+            return mEntities;
+        }
 
         entt::registry mRegistry;
-        //entt::entity mEntity;
+        std::vector<entt::entity> mEntities;
     };
 
     std::shared_ptr<IScene> CreateScene()

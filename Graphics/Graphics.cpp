@@ -98,33 +98,39 @@ namespace DQ
             pAdapter = _getAdapter();
             pDevice = _getDevice(pAdapter);
             pGraphicsQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT);
-            //pCopyQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_COPY);
+            pCopyQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_COPY);
+            pComputeQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_COMPUTE);
             pSwapChain = _getSwapChain(pGraphicsQueue, hwnd, width, height);
             mGFenceValue = 1;
             pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pGFence));
             mGFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-
-            //mCopyFenceValue = 1;
-            //pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pCopyFence));
-            //mCopyFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-
+            mCopyFenceValue = 1;
+            pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pCopyFence));
+            mCopyFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+            mComputeFenceValue = 1;
+            pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pComputeFence));
+            mComputeFenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
             D3D12MA::ALLOCATOR_DESC allocatorDesc{};
             allocatorDesc.pDevice = pDevice;
             allocatorDesc.pAdapter = pAdapter;
             D3D12MA::CreateAllocator(&allocatorDesc, &pAllocator);
-            _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
-            //_wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
         }
 
         ~GraphicsDevice()
         {
             _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
-
+            _wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
+            _wait(mComputeFenceValue, pComputeQueue, pComputeFence, mComputeFenceEvent);
             pAllocator->Release();
-
+            CloseHandle(mComputeFenceEvent);
+            pComputeFence->Release();
+            CloseHandle(mCopyFenceEvent);
+            pCopyFence->Release();
             CloseHandle(mGFenceEvent);
             pGFence->Release();
             pSwapChain->Release();
+            pComputeQueue->Release();
+            pCopyQueue->Release();
             pGraphicsQueue->Release();
             pDevice->Release();
             pAdapter->Release();
@@ -134,6 +140,8 @@ namespace DQ
         {
             pSwapChain->Present(1, 0);
             _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
+            _wait(mCopyFenceValue, pCopyQueue, pCopyFence, mCopyFenceEvent);
+            _wait(mComputeFenceValue, pComputeQueue, pComputeFence, mComputeFenceEvent);
         }
 
         ID3D12Device4* GetDevice() const
@@ -141,35 +149,43 @@ namespace DQ
             return pDevice;
         }
 
-        void Execute(ID3D12CommandList* pList)
+        ID3D12CommandQueue* GetCommandQueue(D3D12_COMMAND_LIST_TYPE type) const
         {
-            if (pList->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT)
+            if (type == D3D12_COMMAND_LIST_TYPE_DIRECT)
             {
-                ID3D12CommandList* pLists[1] = { pList };
-                pGraphicsQueue->ExecuteCommandLists(1, pLists);
+                return pGraphicsQueue;
             }
-        }
-
-        void Wait()
-        {
-            _wait(mGFenceValue, pGraphicsQueue, pGFence, mGFenceEvent);
+            else if (type == D3D12_COMMAND_LIST_TYPE_COPY)
+            {
+                return pCopyQueue;
+            }
+            else if (type == D3D12_COMMAND_LIST_TYPE_COMPUTE)
+            {
+                return pComputeQueue;
+            }
+            return nullptr;
         }
 
         IDXGIAdapter4* pAdapter;
         ID3D12Device6* pDevice;
         ID3D12CommandQueue* pGraphicsQueue;
-        //ID3D12CommandQueue* pCopyQueue;
+        ID3D12CommandQueue* pCopyQueue;
+        ID3D12CommandQueue* pComputeQueue;
         IDXGISwapChain4* pSwapChain;
 
         uint64_t mGFenceValue;
         ID3D12Fence* pGFence;
         HANDLE mGFenceEvent;
 
-        D3D12MA::Allocator* pAllocator;
+        uint64_t mCopyFenceValue;
+        ID3D12Fence* pCopyFence;
+        HANDLE mCopyFenceEvent;
 
-        //uint64_t mCopyFenceValue;
-        //ID3D12Fence* pCopyFence;
-        //HANDLE mCopyFenceEvent;
+        uint64_t mComputeFenceValue;
+        ID3D12Fence* pComputeFence;
+        HANDLE mComputeFenceEvent;
+
+        D3D12MA::Allocator* pAllocator;
     };
 
     std::shared_ptr<IGraphicsDevice> CreateGraphicsDevice(HWND hwnd, uint32_t width, uint32_t height)
