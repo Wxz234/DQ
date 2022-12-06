@@ -10,6 +10,7 @@ public:
     {
         pDevice = DQ::CreateGraphicsDevice(mHwnd.value(), mSettings.mWidth, mSettings.mHeight);
         pScene = DQ::CreateScene();
+        pRenderer = DQ::CreateRenderer(pDevice);
         return true;
     }
 
@@ -22,16 +23,17 @@ public:
 
     void Draw()
     {
-        pDevice->Present();
+        pRenderer->DrawScene(pScene);
     }
 
     const char* GetName()
     {
-        return "Window";
+        return "DrawModel";
     }
 
     std::shared_ptr<DQ::IGraphicsDevice> pDevice;
     std::shared_ptr<DQ::IScene> pScene;
+    std::shared_ptr<DQ::IRenderer> pRenderer;
 };
 
 DEFINE_APPLICATION_MAIN(DrawModel)
