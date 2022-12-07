@@ -1,6 +1,9 @@
 #include <DQ/Renderer/Renderer.h>
+#include "d3dx12.h"
+#include "D3D12MemAlloc.h"
 #include "GBufferVS.h"
 #include "GBufferPS.h"
+#include <cstdint>
 namespace DQ
 {
     class Renderer : public IRenderer
@@ -10,18 +13,22 @@ namespace DQ
         {
             this->pDevice = pDevice;
             pGraphicsQueue = pDevice->GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+            pAllocator = (D3D12MA::Allocator*)pDevice->GetAllocator();
             _CreateRootSignature();
+            _CreateDescriptorHeap();
             _CreateGBufferPipeline();
         }
 
         ~Renderer()
         {
             pRootSignature->Release();
+            pAllDescriptor->Release();
             pGBufferPipeline->Release();
         }
 
         void DrawScene(const std::shared_ptr<IScene>& pScene)
         {
+            //pAllocator->AllocateMemory
             pDevice->Present();
         }
 
@@ -41,6 +48,16 @@ namespace DQ
             signature->Release();
         }
 
+        void _CreateDescriptorHeap()
+        {
+            mGpuResourceIndex = 0;
+            D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+            heapDesc.NumDescriptors = 1000000;
+            heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pAllDescriptor));
+        }
+
         void _CreateGBufferPipeline()
         {
             D3D12_INPUT_ELEMENT_DESC gbufferInputElementDescs[] =
@@ -53,8 +70,8 @@ namespace DQ
             D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
             psoDesc.InputLayout = { gbufferInputElementDescs, 4 };
             psoDesc.pRootSignature = pRootSignature;
-            psoDesc.VS = CD3DX12_SHADER_BYTECODE(gbuffer_vs, sizeof(gbuffer_vs));
-            psoDesc.PS = CD3DX12_SHADER_BYTECODE(gbuffer_ps, sizeof(gbuffer_ps));
+            psoDesc.VS = CD3DX12_SHADER_BYTECODE(GBufferVS, sizeof(GBufferVS));
+            psoDesc.PS = CD3DX12_SHADER_BYTECODE(GBufferPS, sizeof(GBufferPS));
             psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
             psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
             psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -67,11 +84,17 @@ namespace DQ
         }
 
         std::shared_ptr<IGraphicsDevice> pDevice;
-        ID3D12CommandQueue* pGraphicsQueue;
-        ID3D12RootSignature* pRootSignature;
-        ID3D12PipelineState* pGBufferPipeline;
 
-        ID3D12GraphicsCommandList* pGBufferList;
+        ID3D12CommandQueue* pGraphicsQueue;
+
+        ID3D12RootSignature* pRootSignature;
+
+        ID3D12DescriptorHeap* pAllDescriptor;
+        uint32_t mGpuResourceIndex;
+
+        D3D12MA::Allocator* pAllocator;
+
+        ID3D12PipelineState* pGBufferPipeline;
     };
 
     std::shared_ptr<IRenderer> CreateRenderer(const std::shared_ptr<IGraphicsDevice>& pDevice)

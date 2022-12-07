@@ -166,6 +166,11 @@ namespace DQ
             return nullptr;
         }
 
+        IUnknown* GetAllocator() const
+        {
+            return pAllocator;
+        }
+
         IDXGIAdapter4* pAdapter;
         ID3D12Device6* pDevice;
         ID3D12CommandQueue* pGraphicsQueue;
