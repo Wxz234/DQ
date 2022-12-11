@@ -1,4 +1,5 @@
 #include <DQ/Scene/Scene.h>
+#include <DQ/Component/Component.h>
 namespace DQ
 {
     class Scene : public IScene

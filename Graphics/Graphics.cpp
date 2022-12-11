@@ -95,6 +95,8 @@ namespace DQ
     public:
         GraphicsDevice(HWND hwnd, uint32_t width, uint32_t height)
         {
+            w = width;
+            h = height;
             pAdapter = _getAdapter();
             pDevice = _getDevice(pAdapter);
             pGraphicsQueue = _getQueue(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT);
@@ -170,6 +172,19 @@ namespace DQ
         {
             return pAllocator;
         }
+
+        uint32_t GetWidth() const
+        {
+            return w;
+        }
+        uint32_t GetHeight() const
+        {
+            return h;
+        }
+
+
+        uint32_t w;
+        uint32_t h;
 
         IDXGIAdapter4* pAdapter;
         ID3D12Device6* pDevice;

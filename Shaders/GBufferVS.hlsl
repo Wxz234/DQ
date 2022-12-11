@@ -8,13 +8,12 @@ struct SceneVertex
     uint   materialID : MATERIAL_ID;
 };
 
-struct c_GBuffer
+struct c_Camera
 {
     matrix c_model;
     matrix c_view;
     matrix c_proj;
     matrix c_world_inv_transpose;
-    float4 c_direction_light;
 };
 
 void main(
@@ -25,7 +24,7 @@ void main(
     out uint   o_materialID : MATERIAL_ID
 )
 {
-    ConstantBuffer<c_GBuffer> camera = ResourceDescriptorHeap[0];
+    ConstantBuffer<c_Camera> camera = ResourceDescriptorHeap[0];
     matrix mvp = camera.c_model * camera.c_view * camera.c_proj;
     o_position = mul(mvp, float4(i_vtx.position, 1.0));
     o_texcoord = i_vtx.texcoord;
