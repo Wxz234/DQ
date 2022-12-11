@@ -11,13 +11,16 @@ namespace DQ
     class Renderer : public IRenderer
     {
     public:
-        Renderer(const std::shared_ptr<IGraphicsDevice>& pDevice)
+        Renderer(const std::shared_ptr<IGraphicsDevice>& p_Device)
         {
-            this->pDevice = pDevice;
+            this->pDevice = p_Device;
+            w = pDevice->GetWidth();
+            h = pDevice->GetHeight();
             pGraphicsQueue = pDevice->GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
             pAllocator = (D3D12MA::Allocator*)pDevice->GetAllocator();
             _CreateRootSignature();
             _CreateDescriptorHeap();
+            _CreateSampler();
             _CreateResource();
             _CreateGBufferObject();
         }
@@ -25,7 +28,9 @@ namespace DQ
         ~Renderer()
         {
             pRootSignature->Release();
-            pAllDescriptor->Release();
+
+            pSamplerDescriptor->Release();
+            pSR_CB_UA_Descriptor->Release();
             pRenderTargetDescriptor->Release();
 
             pCameraCB0->Unmap(0, nullptr);
@@ -40,7 +45,11 @@ namespace DQ
         void DrawScene(const std::shared_ptr<IScene>& pScene)
         {
             pGBufferCommandAllocator->Reset();
-            pGBufferCommandList->Reset(pGBufferCommandAllocator, nullptr);
+            pGBufferCommandList->Reset(pGBufferCommandAllocator, pGBufferPipeline);
+            pGBufferCommandList->SetGraphicsRootSignature(pRootSignature);
+            //pGBufferCommandList->SetDescriptorHeaps()
+            pGBufferCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
             pGBufferCommandList->Close();
             ID3D12CommandList* pGBufferList[1] = { pGBufferCommandList };
             pGraphicsQueue->ExecuteCommandLists(1, pGBufferList);
@@ -61,12 +70,18 @@ namespace DQ
 
         void _CreateDescriptorHeap()
         {
-            mGpuResourceIndex = 0;
             D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+            mSamplerIndex = 0;
+            heapDesc.NumDescriptors = 4;
+            heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pSamplerDescriptor));
+
+            mGpuResourceIndex = 0;
             heapDesc.NumDescriptors = 1000000;
             heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pAllDescriptor));
+            pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pSR_CB_UA_Descriptor));
 
             mRenderTargetResourceIndex = 0;
             heapDesc.NumDescriptors = 8;
@@ -75,9 +90,14 @@ namespace DQ
             pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pRenderTargetDescriptor));
         }
 
+        void _CreateSampler()
+        {
+            //pDevice->GetDevice()->CreateSampler
+        }
+
         void _CreateResource()
         {
-            CD3DX12_CPU_DESCRIPTOR_HANDLE _srv_cbv_uav_descriptorHandle(pAllDescriptor->GetCPUDescriptorHandleForHeapStart());
+            CD3DX12_CPU_DESCRIPTOR_HANDLE _srv_cbv_uav_descriptorHandle(pSR_CB_UA_Descriptor->GetCPUDescriptorHandleForHeapStart());
             auto _srv_cbv_uav_descriptorOffset = pDevice->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             CD3DX12_CPU_DESCRIPTOR_HANDLE _rtv_descriptorHandle(pRenderTargetDescriptor->GetCPUDescriptorHandleForHeapStart());
             auto _rtv_descriptorOffset = pDevice->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -98,7 +118,7 @@ namespace DQ
 
             // gbuffer target 0;
             heapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
-            CD3DX12_RESOURCE_DESC gbufferTarget0Desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, pDevice->GetWidth(), pDevice->GetHeight());
+            CD3DX12_RESOURCE_DESC gbufferTarget0Desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, w, h);
             gbufferTarget0Desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
             D3D12_CLEAR_VALUE gbufferTarget0ClearValue{};
             gbufferTarget0ClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -133,7 +153,9 @@ namespace DQ
             psoDesc.PS = CD3DX12_SHADER_BYTECODE(GBufferPS, sizeof(GBufferPS));
             psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
             psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-            psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+            //psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+            psoDesc.DepthStencilState.DepthEnable = FALSE;
+            psoDesc.DepthStencilState.StencilEnable = FALSE;
             psoDesc.SampleMask = UINT_MAX;
             psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
             psoDesc.NumRenderTargets = 1;
@@ -164,13 +186,18 @@ namespace DQ
 
         std::shared_ptr<IGraphicsDevice> pDevice;
 
+        uint32_t w;
+        uint32_t h;
+
         ID3D12CommandQueue* pGraphicsQueue;
 
         D3D12MA::Allocator* pAllocator;
 
         ID3D12RootSignature* pRootSignature;
 
-        ID3D12DescriptorHeap* pAllDescriptor;
+        ID3D12DescriptorHeap* pSamplerDescriptor;
+        uint32_t mSamplerIndex;
+        ID3D12DescriptorHeap* pSR_CB_UA_Descriptor;
         uint32_t mGpuResourceIndex;
         ID3D12DescriptorHeap* pRenderTargetDescriptor;
         uint32_t mRenderTargetResourceIndex;
@@ -178,6 +205,7 @@ namespace DQ
         ID3D12Resource* pCameraCB0;
         CameraCB0* pCPUCameraCB0;
         ID3D12Resource* pGBufferTarget0;
+        ID3D12Resource* pDSResource;
 
         ID3D12PipelineState* pGBufferPipeline;
         ID3D12CommandAllocator* pGBufferCommandAllocator;
