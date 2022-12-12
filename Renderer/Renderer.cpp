@@ -92,7 +92,26 @@ namespace DQ
 
         void _CreateSampler()
         {
-            //pDevice->GetDevice()->CreateSampler
+            CD3DX12_CPU_DESCRIPTOR_HANDLE _sampler_descriptorHandle(pSamplerDescriptor->GetCPUDescriptorHandleForHeapStart());
+            auto _sampler_descriptorOffset = pDevice->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
+            D3D12_SAMPLER_DESC samplerDesc{};
+            samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.MipLODBias = 0.f;
+            samplerDesc.MaxAnisotropy = 0;
+            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+            samplerDesc.BorderColor[0] = 1.f;
+            samplerDesc.BorderColor[1] = 1.f;
+            samplerDesc.BorderColor[2] = 1.f;
+            samplerDesc.BorderColor[3] = 1.f;
+            samplerDesc.MinLOD = 0.f;
+            samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+            pDevice->GetDevice()->CreateSampler(&samplerDesc, _sampler_descriptorHandle);
+            _sampler_descriptorHandle.Offset(_sampler_descriptorOffset);
+            ++mSamplerIndex;
         }
 
         void _CreateResource()
