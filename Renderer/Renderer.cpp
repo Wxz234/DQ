@@ -6,6 +6,7 @@
 #include "GBufferPS.h"
 #include <DirectXMath.h>
 #include <cstdint>
+#include <vector>
 namespace DQ
 {
     class Renderer : public IRenderer
@@ -20,6 +21,7 @@ namespace DQ
             pAllocator = (D3D12MA::Allocator*)pDevice->GetAllocator();
             _CreateRootSignature();
             _CreateDescriptorHeap();
+            _CreateDescriptorPool();
             _CreateSampler();
             _CreateResource();
             _CreateGBufferObject();
@@ -47,7 +49,7 @@ namespace DQ
             pGBufferCommandAllocator->Reset();
             pGBufferCommandList->Reset(pGBufferCommandAllocator, pGBufferPipeline);
             pGBufferCommandList->SetGraphicsRootSignature(pRootSignature);
-            //pGBufferCommandList->SetDescriptorHeaps()
+            pGBufferCommandList->SetDescriptorHeaps(mDescriptorPool.size(), mDescriptorPool.data());
             pGBufferCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
             pGBufferCommandList->Close();
@@ -88,6 +90,12 @@ namespace DQ
             heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
             pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pRenderTargetDescriptor));
+        }
+
+        void _CreateDescriptorPool()
+        {
+            mDescriptorPool.push_back(pSamplerDescriptor);
+            mDescriptorPool.push_back(pSR_CB_UA_Descriptor);
         }
 
         void _CreateSampler()
@@ -220,6 +228,8 @@ namespace DQ
         uint32_t mGpuResourceIndex;
         ID3D12DescriptorHeap* pRenderTargetDescriptor;
         uint32_t mRenderTargetResourceIndex;
+
+        std::vector<ID3D12DescriptorHeap*> mDescriptorPool;
 
         ID3D12Resource* pCameraCB0;
         CameraCB0* pCPUCameraCB0;
