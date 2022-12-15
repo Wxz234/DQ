@@ -1,6 +1,6 @@
 #pragma once
-#include "../Graphics/Graphics.h"
-#include "../Scene/Scene.h"
+#include <DQ/Graphics/Graphics.h>
+#include <DQ/Scene/Scene.h>
 #include <memory>
 namespace DQ
 {

@@ -1,5 +1,9 @@
 #include <DQ/Scene/Scene.h>
 #include <DQ/Component/Component.h>
+#include "entt/entt.hpp"
+#include <combaseapi.h>
+
+#pragma warning(disable:6031)
 namespace DQ
 {
     class Scene : public IScene
@@ -7,7 +11,12 @@ namespace DQ
     public:
         Scene()
         {
-            //mEntity = mRegistry.create();
+            CoCreateGuid(&_G);
+        }
+
+        GUID GetGUID() const
+        {
+            return _G;
         }
 
         void LoadModel(const char* path)
@@ -20,9 +29,9 @@ namespace DQ
 
         }
 
-        entt::registry& GetRegistry()
+        void* GetRegistry()
         {
-            return mRegistry;
+            return &mRegistry;
         }
 
         std::vector<entt::entity> GetEntities() const
@@ -32,6 +41,7 @@ namespace DQ
 
         entt::registry mRegistry;
         std::vector<entt::entity> mEntities;
+        GUID _G;
     };
 
     std::shared_ptr<IScene> CreateScene()
