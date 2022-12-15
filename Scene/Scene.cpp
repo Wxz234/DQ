@@ -12,6 +12,11 @@ namespace DQ
         Scene()
         {
             CoCreateGuid(&_G);
+            // Camera Component
+        }
+
+        ~Scene()
+        {
         }
 
         GUID GetGUID() const
