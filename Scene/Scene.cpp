@@ -2,6 +2,7 @@
 #include <DQ/Component/Component.h>
 #include "entt/entt.hpp"
 #include <combaseapi.h>
+#include <vector>
 
 #pragma warning(disable:6031)
 namespace DQ
@@ -13,20 +14,13 @@ namespace DQ
         {
             CoCreateGuid(&_G);
             // Camera Component
+            auto camera = mRegistry.create();
+            mRegistry.emplace<CameraComponent>(camera, CameraComponent());
+            mEntities.push_back(camera);
         }
 
         ~Scene()
         {
-        }
-
-        GUID GetGUID() const
-        {
-            return _G;
-        }
-
-        void LoadModel(const char* path)
-        {
-
         }
 
         void OnUpdate(float t)
@@ -34,18 +28,36 @@ namespace DQ
 
         }
 
+
+        GUID GetGUID() const
+        {
+            return _G;
+        }
+
         void* GetRegistry()
         {
             return &mRegistry;
         }
 
-        std::vector<entt::entity> GetEntities() const
+        void* GetEntities()
         {
-            return mEntities;
+            return &mEntities;
+        }
+
+        void LoadModel(const char* path)
+        {
+
+        }
+
+        void SetCameraAspectRatio(uint32_t w, uint32_t h)
+        {
+            auto& camera = mRegistry.get<CameraComponent>(mEntities[0]);
+            camera.SetAspectRatio(w, h);
         }
 
         entt::registry mRegistry;
         std::vector<entt::entity> mEntities;
+
         GUID _G;
     };
 

@@ -10,6 +10,7 @@ public:
     {
         pDevice = DQ::CreateGraphicsDevice(mHwnd.value(), mSettings.mWidth, mSettings.mHeight);
         pScene = DQ::CreateScene();
+        pScene->SetCameraAspectRatio(mSettings.mWidth, mSettings.mHeight);
         pRenderer = DQ::CreateRenderer(pDevice);
         return true;
     }

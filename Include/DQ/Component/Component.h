@@ -44,6 +44,14 @@ namespace DQ
             auto proj = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV4, (float)mWidth / (float)mHeight, 0.1f, 1000.f);
             DirectX::XMStoreFloat4x4(&mProj, proj);
         }
+
+        void SetAspectRatio(uint32_t width, uint32_t height)
+        {
+            mWidth = width;
+            mHeight = height;
+            auto proj = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV4, (float)mWidth / (float)mHeight, 0.1f, 1000.f);
+            DirectX::XMStoreFloat4x4(&mProj, proj);
+        }
     private:
         uint32_t mWidth;
         uint32_t mHeight;
