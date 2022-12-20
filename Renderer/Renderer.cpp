@@ -1,5 +1,5 @@
 #include <DQ/Renderer/Renderer.h>
-#include <DQ/Component/Component.h>
+#include <DQ/Component/Component.hpp>
 
 #include "d3dx12.h"
 #include "D3D12MemAlloc.h"
@@ -281,6 +281,7 @@ namespace DQ
         ID3D12GraphicsCommandList6* pGBufferCommandList;
 
         std::optional<Scene*> pRenderingScene;
+        std::vector<ID3D12Resource*> mTextureData;
         entt::registry* pRegistry;
         std::vector<entt::entity>* pEntities;
     };

@@ -2,7 +2,7 @@
 #include <DQ/Graphics/Graphics.h>
 #include <DQ/Scene/Scene.h>
 #include <DQ/Renderer/Renderer.h>
-#include <DQ/Component/Component.h>
+#include <DQ/Component/Component.hpp>
 
 class DrawModel : public DQ::IApp
 {

@@ -1,5 +1,5 @@
 #include <DQ/Scene/Scene.h>
-#include <DQ/Component/Component.h>
+#include <DQ/Component/Component.hpp>
 #include "Scene_Internal.h"
 #include "entt/entt.hpp"
 #include <vector>
