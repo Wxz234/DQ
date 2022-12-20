@@ -1,9 +1,11 @@
 #include <DQ/Renderer/Renderer.h>
 #include <DQ/Component/Component.hpp>
-
+// 3rd
 #include "d3dx12.h"
 #include "D3D12MemAlloc.h"
 #include "entt/entt.hpp"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 // scene internal
 #include "Scene_Internal.h"
 

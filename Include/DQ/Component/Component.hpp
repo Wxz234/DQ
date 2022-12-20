@@ -9,7 +9,7 @@ namespace DQ
         virtual ~Component() {}
     };
 
-    class CameraComponent : Component
+    class CameraComponent : public Component
     {
     public:
 
@@ -61,5 +61,12 @@ namespace DQ
         DirectX::XMFLOAT4X4 mModel;
         DirectX::XMFLOAT4X4 mView;
         DirectX::XMFLOAT4X4 mProj;
+    };
+
+    class MeshComponent : public Component
+    {
+    public:
+    private:
+
     };
 }

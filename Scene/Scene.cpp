@@ -1,7 +1,12 @@
 #include <DQ/Scene/Scene.h>
 #include <DQ/Component/Component.hpp>
 #include "Scene_Internal.h"
+// 3rd
+#define CGLTF_IMPLEMENTATION
+#include "cgltf.h"
 #include "entt/entt.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 namespace DQ
 {
     class Internal_Scene : public Scene
@@ -64,11 +69,12 @@ namespace DQ
 
         std::vector<std::vector<int8_t>> GetTextureData() const
         {
-            return std::vector<std::vector<int8_t>>();
+            return mTextureData;
         }
 
         entt::registry mRegistry;
         std::vector<entt::entity> mEntities;
+        std::vector<std::vector<int8_t>> mTextureData;
         bool mHasRenderable;
     };
 
