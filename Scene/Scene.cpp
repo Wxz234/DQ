@@ -2,7 +2,6 @@
 #include <DQ/Component/Component.hpp>
 #include "Scene_Internal.h"
 #include "entt/entt.hpp"
-#include <vector>
 namespace DQ
 {
     class Internal_Scene : public Scene
@@ -61,6 +60,11 @@ namespace DQ
         void _DestroyTextureData()
         {
 
+        }
+
+        std::vector<std::vector<int8_t>> GetTextureData() const
+        {
+            return std::vector<std::vector<int8_t>>();
         }
 
         entt::registry mRegistry;
