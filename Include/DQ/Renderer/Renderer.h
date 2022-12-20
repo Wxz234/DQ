@@ -7,7 +7,9 @@ namespace DQ
     class IRenderer
     {
     public:
-        virtual void DrawScene(const std::shared_ptr<IScene>& pScene) = 0;
+        virtual void SetScene(const std::shared_ptr<IScene>& pScene) = 0;
+        virtual void OnUpdate(float t) = 0;
+        virtual void Draw() = 0;
     };
 
     std::shared_ptr<IRenderer> CreateRenderer(const std::shared_ptr<IGraphicsDevice>& pDevice);

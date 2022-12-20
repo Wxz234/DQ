@@ -1,37 +1,30 @@
 #include <DQ/Scene/Scene.h>
 #include <DQ/Component/Component.h>
+#include "Scene_Internal.h"
 #include "entt/entt.hpp"
-#include <combaseapi.h>
 #include <vector>
-
-#pragma warning(disable:6031)
 namespace DQ
 {
-    class Scene : public IScene
+    class Internal_Scene : public Scene
     {
     public:
-        Scene()
+        Internal_Scene()
         {
-            CoCreateGuid(&_G);
             // Camera Component
             auto camera = mRegistry.create();
             mRegistry.emplace<CameraComponent>(camera, CameraComponent());
             mEntities.push_back(camera);
+
+            mHasRenderable = false;
         }
 
-        ~Scene()
+        ~Internal_Scene()
         {
         }
 
         void OnUpdate(float t)
         {
 
-        }
-
-
-        GUID GetGUID() const
-        {
-            return _G;
         }
 
         void* GetRegistry()
@@ -55,14 +48,28 @@ namespace DQ
             camera.SetAspectRatio(w, h);
         }
 
+        bool HasRenderable() const
+        {
+            return mHasRenderable;
+        }
+
+        void _CreateTextureData()
+        {
+
+        }
+
+        void _DestroyTextureData()
+        {
+
+        }
+
         entt::registry mRegistry;
         std::vector<entt::entity> mEntities;
-
-        GUID _G;
+        bool mHasRenderable;
     };
 
     std::shared_ptr<IScene> CreateScene()
     {
-        return std::shared_ptr<IScene>(new Scene);
+        return std::shared_ptr<IScene>(new Internal_Scene);
     }
 }

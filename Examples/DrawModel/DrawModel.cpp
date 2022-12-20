@@ -2,6 +2,7 @@
 #include <DQ/Graphics/Graphics.h>
 #include <DQ/Scene/Scene.h>
 #include <DQ/Renderer/Renderer.h>
+#include <DQ/Component/Component.h>
 
 class DrawModel : public DQ::IApp
 {
@@ -12,6 +13,7 @@ public:
         pScene = DQ::CreateScene();
         pScene->SetCameraAspectRatio(mSettings.mWidth, mSettings.mHeight);
         pRenderer = DQ::CreateRenderer(pDevice);
+        pRenderer->SetScene(pScene);
         return true;
     }
 
@@ -19,12 +21,13 @@ public:
 
     void Update(float deltaTime)
     {
-        pScene->OnUpdate(deltaTime);
+        pRenderer->OnUpdate(deltaTime);
     }
 
     void Draw()
     {
-        pRenderer->DrawScene(pScene);
+        pRenderer->Draw();
+        pDevice->Present();
     }
 
     const char* GetName()

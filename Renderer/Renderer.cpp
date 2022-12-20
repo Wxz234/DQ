@@ -1,14 +1,20 @@
 #include <DQ/Renderer/Renderer.h>
 #include <DQ/Component/Component.h>
+
 #include "d3dx12.h"
 #include "D3D12MemAlloc.h"
 #include "entt/entt.hpp"
+// scene internal
+#include "Scene_Internal.h"
+
 #include <DirectXMath.h>
 #include <vector>
+#include <optional>
 #include <cstdint>
 // shader
 #include "GBufferVS.h"
 #include "GBufferPS.h"
+
 namespace DQ
 {
     class Renderer : public IRenderer
@@ -27,6 +33,9 @@ namespace DQ
             _CreateSampler();
             _CreateResource();
             _CreateGBufferObject();
+
+            pRegistry = nullptr;
+            pEntities = nullptr;
         }
 
         ~Renderer()
@@ -44,21 +53,6 @@ namespace DQ
             pGBufferPipeline->Release();
             pGBufferCommandAllocator->Release();
             pGBufferCommandList->Release();
-        }
-
-        void DrawScene(const std::shared_ptr<IScene>& pScene)
-        {
-            pGBufferCommandAllocator->Reset();
-            pGBufferCommandList->Reset(pGBufferCommandAllocator, pGBufferPipeline);
-            pGBufferCommandList->SetGraphicsRootSignature(pRootSignature);
-            pGBufferCommandList->SetDescriptorHeaps(mDescriptorPool.size(), mDescriptorPool.data());
-            pGBufferCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-            pGBufferCommandList->Close();
-            ID3D12CommandList* pGBufferList[1] = { pGBufferCommandList };
-            pGraphicsQueue->ExecuteCommandLists(1, pGBufferList);
-
-            pDevice->Present();
         }
 
         void _CreateRootSignature()
@@ -205,6 +199,50 @@ namespace DQ
             return size / 256 * 256 + 256;
         }
 
+        void _UpdateResource()
+        {
+            auto pScene = pRenderingScene.value();
+            //
+            pRegistry = (entt::registry*)pScene->GetRegistry();
+            pEntities = (std::vector<entt::entity>*)pScene->GetEntities();
+            // Destroy Texture Data
+            pScene->_DestroyTextureData();
+        }
+
+        void SetScene(const std::shared_ptr<IScene>& pScene)
+        {
+            if (pRenderingScene.has_value())
+            {
+                auto pScene = pRenderingScene.value();
+                pScene->_CreateTextureData();
+            }
+
+            pRenderingScene = (Scene*)pScene.get();
+            // update resource
+            _UpdateResource();
+        }
+
+        void OnUpdate(float t)
+        {
+            auto pScene = pRenderingScene.value();
+            pScene->OnUpdate(t);
+        }
+
+        void Draw()
+        {
+            if (!pRenderingScene.has_value())
+            {
+                return;
+            }
+
+            auto pScene = pRenderingScene.value();
+            if (!pScene->HasRenderable())
+            {
+                return;
+            }
+            // draw
+        }
+
         struct CameraCB0
         {
             DirectX::XMFLOAT4X4 model;
@@ -241,6 +279,10 @@ namespace DQ
         ID3D12PipelineState* pGBufferPipeline;
         ID3D12CommandAllocator* pGBufferCommandAllocator;
         ID3D12GraphicsCommandList6* pGBufferCommandList;
+
+        std::optional<Scene*> pRenderingScene;
+        entt::registry* pRegistry;
+        std::vector<entt::entity>* pEntities;
     };
 
     std::shared_ptr<IRenderer> CreateRenderer(const std::shared_ptr<IGraphicsDevice>& pDevice)

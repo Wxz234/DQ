@@ -1,4 +1,4 @@
-add_library(DQ-Scene STATIC "Scene.cpp")
+add_library(DQ-Scene STATIC "Scene.cpp" "Scene_Internal.h")
 target_include_directories(DQ-Scene PUBLIC "${PROJECT_SOURCE_DIR}/Include")
 target_include_directories(DQ-Scene PRIVATE "${PROJECT_SOURCE_DIR}/Third/entt")
 target_link_libraries(DQ-Scene PUBLIC Ole32.lib)
