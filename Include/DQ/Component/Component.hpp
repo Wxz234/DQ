@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include <vector>
 #include <cstdint>
 namespace DQ
 {
@@ -66,7 +67,32 @@ namespace DQ
     class MeshComponent : public Component
     {
     public:
+        MeshComponent(const std::vector<DirectX::XMFLOAT3>& v, const std::vector<DirectX::XMFLOAT3>& n, const std::vector<DirectX::XMFLOAT2>& t0, const std::vector<uint16_t>& i)
+        {
+            mV = v;
+            mN = n;
+            mT0 = t0;
+            mI = i;
+            mRealIndex = index++;
+        }
+
+        uint32_t GetMeshIndex() const
+        {
+            return mRealIndex;
+        }
+
     private:
+        std::vector<DirectX::XMFLOAT3> mV;
+        std::vector<DirectX::XMFLOAT3> mN;
+        std::vector<DirectX::XMFLOAT2> mT0;
+        std::vector<uint16_t> mI;
+        uint32_t mRealIndex;
+
+        inline static uint32_t index = 0;
+    };
+    
+    class TransformComponent : public Component
+    {
 
     };
 }
