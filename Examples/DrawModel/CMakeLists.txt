@@ -1,3 +1,5 @@
-add_executable(DrawModel WIN32 DrawModel.cpp)
+set_source_files_properties(GBufferVS.hlsl PROPERTIES VS_SHADER_TYPE Vertex VS_SHADER_MODEL 6.6 VS_SHADER_ENTRYPOINT main)
+set_source_files_properties(GBufferPS.hlsl PROPERTIES VS_SHADER_TYPE Pixel VS_SHADER_MODEL 6.6 VS_SHADER_ENTRYPOINT main)
+add_executable(DrawModel WIN32 DrawModel.cpp GBufferVS.hlsl GBufferPS.hlsl)
 target_link_libraries(DrawModel PRIVATE DQ)
 set_target_properties(DrawModel PROPERTIES FOLDER "Examples")

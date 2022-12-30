@@ -39,11 +39,13 @@ public:
         pDevice = DQ::CreateDevice(mHwnd.value(), mSettings.mWidth, mSettings.mHeight);
         mScene.UpdateCameraAspectRatio(mSettings.mWidth, mSettings.mHeight);
         _CreateRootSignature();
+        _CreateDescriptorHeap();
         return true;
     }
 
     void Exit()
     {
+        _RemoveDescriptorHeap();
         _RemoveRootSignature();
     }
 
@@ -82,6 +84,27 @@ public:
 
     void _CreateDescriptorHeap()
     {
+        auto meshCount = mScene.GetMeshCount();
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+        heapDesc.NumDescriptors = meshCount ? meshCount * 4 : 4;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pShaderResourceDescriptor));
+
+        heapDesc.NumDescriptors = 4;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+        pDevice->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pSamplerDescriptor));
+    }
+
+    void _RemoveDescriptorHeap()
+    {
+        pShaderResourceDescriptor->Release();
+        pSamplerDescriptor->Release();
+    }
+
+    void _CreateGBuffer()
+    {
 
     }
 
@@ -90,9 +113,13 @@ public:
     Scene mScene;
 
     ID3D12RootSignature* pRootSignature = nullptr;
-    ID3D12PipelineState* pGBufferPSO = nullptr;
 
     ID3D12DescriptorHeap* pShaderResourceDescriptor = nullptr;
+    ID3D12DescriptorHeap* pSamplerDescriptor = nullptr;
+
+    ID3D12PipelineState* pGBufferPSO = nullptr;
+    ID3D12CommandAllocator* pGBufferAllocator = nullptr;
+    ID3D12GraphicsCommandList* pGBufferList = nullptr;
 };
 
 DEFINE_APPLICATION_MAIN(DrawModel)
