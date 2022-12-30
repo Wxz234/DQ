@@ -19,8 +19,8 @@ struct c_Camera
 void main(
     in SceneVertex i_vtx,
     out float4 o_position : SV_POSITION,
-    out float2 o_texcoord : TEXCOORD,
     out float3 o_wnormal : NORMAL,
+    out float2 o_texcoord : TEXCOORD,
     out uint   o_materialID : MATERIAL_ID
 )
 {
