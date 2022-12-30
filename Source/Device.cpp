@@ -136,6 +136,30 @@ namespace DQ
             _wait(mComputeFenceValue, pComputeQueue.Get(), pComputeFence.Get(), mComputeEvent.Get());
         }
 
+        ID3D12Device6* GetDevice() const
+        {
+            return pDevice.Get();
+        }
+
+        ID3D12CommandQueue* GetQueue(D3D12_COMMAND_LIST_TYPE queueType) const
+        {
+            ID3D12CommandQueue* temp = nullptr;
+            if (queueType == D3D12_COMMAND_LIST_TYPE_DIRECT)
+            {
+                temp = pGraphicsQueue.Get();
+            }
+            else if (queueType == D3D12_COMMAND_LIST_TYPE_COPY)
+            {
+                temp = pCopyQueue.Get();
+            }
+            else if (queueType == D3D12_COMMAND_LIST_TYPE_COMPUTE)
+            {
+                temp = pComputeQueue.Get();
+            }
+
+            return temp;
+        }
+
         uint32_t w;
         uint32_t h;
         Microsoft::WRL::ComPtr<IDXGIAdapter4> pAdapter;

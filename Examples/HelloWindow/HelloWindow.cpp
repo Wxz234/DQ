@@ -1,7 +1,7 @@
 #include <Window/Window.h>
 #include <Device/Device.h>
 
-class Window : public DQ::IApp
+class HelloWindow : public DQ::IApp
 {
 public:
     bool Init()
@@ -21,10 +21,10 @@ public:
 
     const char* GetName()
     {
-        return "Window";
+        return "HelloWindow";
     }
 
     std::shared_ptr<DQ::IDevice> pDevice;
 };
 
-DEFINE_APPLICATION_MAIN(Window)
+DEFINE_APPLICATION_MAIN(HelloWindow)

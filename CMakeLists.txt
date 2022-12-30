@@ -6,3 +6,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory("Source")
 add_subdirectory("Examples/HelloWindow")
+add_subdirectory("Examples/DrawModel")
