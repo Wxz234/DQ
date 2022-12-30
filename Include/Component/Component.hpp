@@ -19,8 +19,7 @@ namespace DQ
         {
             w = 800;
             h = 600;
-
-            pos = glm::vec3(22.f, 0.f, 0.f);
+            pos = glm::vec3(0.f, 0.f, 0.f);
             dir = glm::vec3(0.f, 0.f, 1.f);
             up = glm::vec3(0.f, 1.f, 0.f);
             m = glm::mat4(1.0f);
@@ -28,11 +27,24 @@ namespace DQ
             p = glm::perspectiveLH_ZO(glm::radians(45.f), (float)w / (float)h, 0.1f, 1000.0f);
         }
 
-    //private:
+        glm::mat4 GetM() const
+        {
+            return m;
+        }
 
+        glm::mat4 GetV() const
+        {
+            return v;
+        }
+
+        glm::mat4 GetP() const
+        {
+            return p;
+        }
+
+    private:
         uint32_t w;
         uint32_t h;
-
         glm::vec3 pos;
         glm::vec3 dir;
         glm::vec3 up;
