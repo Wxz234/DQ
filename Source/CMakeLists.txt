@@ -1,6 +1,7 @@
 add_library(DQ STATIC 
 	"Window.cpp"
 	"Device.cpp"
+	"Renderer.cpp"
 )
 
 target_include_directories(DQ PUBLIC "${PROJECT_SOURCE_DIR}/Include")
