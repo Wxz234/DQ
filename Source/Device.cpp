@@ -2,6 +2,7 @@
 #include <wrl.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <vector>
 
 #define FRAME_COUNT 2
 #define FRAME_FORMAT DXGI_FORMAT_R8G8B8A8_UNORM
@@ -116,6 +117,19 @@ namespace DQ
             mCopyFenceValue = 1;
             mComputeFenceValue = 1;
 
+            D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+            rootSignatureDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+            rootSignatureDesc.Desc_1_1.NumParameters = 0;
+            rootSignatureDesc.Desc_1_1.NumStaticSamplers = 0;
+            rootSignatureDesc.Desc_1_1.pParameters = nullptr;
+            rootSignatureDesc.Desc_1_1.pStaticSamplers = nullptr;
+            rootSignatureDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED | D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
+            ID3DBlob* signature = nullptr;
+            ID3DBlob* error = nullptr;
+            D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
+            pDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
+            signature->Release();
+
             _wait(mGFenceValue, pGraphicsQueue.Get(), pGFence.Get(), mGEvent.Get());
             _wait(mCopyFenceValue, pCopyQueue.Get(), pCopyFence.Get(), mCopyEvent.Get());
             _wait(mComputeFenceValue, pComputeQueue.Get(), pComputeFence.Get(), mComputeEvent.Get());
@@ -160,6 +174,11 @@ namespace DQ
             return temp;
         }
 
+        ID3D12RootSignature* GetNullRootSignature() const
+        {
+            return pRootSignature.Get();
+        }
+
         uint32_t w;
         uint32_t h;
         Microsoft::WRL::ComPtr<IDXGIAdapter4> pAdapter;
@@ -178,6 +197,8 @@ namespace DQ
         uint64_t mGFenceValue;
         uint64_t mCopyFenceValue;
         uint64_t mComputeFenceValue;
+
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> pRootSignature;
     };
 
     std::shared_ptr<IDevice> CreateDevice(HWND hwnd, uint32_t w, uint32_t h)
