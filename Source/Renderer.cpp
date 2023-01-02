@@ -76,6 +76,11 @@ namespace DQ
             delete pVertex;
         }
 
+        void BindTextureData(const std::vector<TextureData>& texData)
+        {
+
+        }
+
 
         std::shared_ptr<IDevice> pDevice;
         IPass* pGBufferPass;
