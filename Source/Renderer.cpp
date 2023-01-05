@@ -1,6 +1,7 @@
 #include <Renderer/Renderer.h>
 #include <wrl.h>
 #include <cstdint>
+
 namespace DQ
 {
     class IPass
@@ -61,31 +62,46 @@ namespace DQ
         Microsoft::WRL::ComPtr<ID3D12Resource> pVertex;
     };
 
+    struct CB0_CameraMatrix
+    {
+        glm::mat4 m;
+        glm::mat4 v;
+        glm::mat4 p;
+        glm::mat4 model_inv_transpose;
+    };
+
     class Renderer : public IRenderer
     {
     public:
         Renderer(const std::shared_ptr<IDevice>& pDevicePtr)
         {
             pDevice = pDevicePtr;
-            pGBufferPass = new GBufferPass(pDevice->GetDevice());
-            pVertex = new IVertexBuffer(pDevice->GetDevice(), 1024);
+            // cb0
+            _create_CB0();
+
         }
         ~Renderer()
         {
-            delete pGBufferPass;
-            delete pVertex;
         }
+
+        void SetM(const glm::mat4& m) {}
+        void SetV(const glm::mat4& v) {}
+        void SetP(const glm::mat4& p) {}
 
         void BindTextureData(const std::vector<TextureData>& texData)
         {
 
         }
 
+        void _create_CB0()
+        {
+
+        }
 
         std::shared_ptr<IDevice> pDevice;
-        IPass* pGBufferPass;
-        IVertexBuffer* pVertex;
-        
+
+        Microsoft::WRL::ComPtr<ID3D12Resource> pCB0_CameraMatrix;
+        CB0_CameraMatrix mCPU_CB0_CameraMatrix;
     };
 
     std::shared_ptr<IRenderer> CreateRenderer(const std::shared_ptr<IDevice>& pDevice)
